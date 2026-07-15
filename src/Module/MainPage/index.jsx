@@ -17,11 +17,11 @@ import VdoThumb from "../../Components/common/VdoThumb";
 import TopStories from "../../Components/Global/TopStories"
 import FlashNews from "../../Components/Global/FlashNews"
 import PhotoGallery from "../../Components/Global/PhotoGallery"
+import VisualStories from "../../Components/Global/VisualStories"
 
 const AdCardPopup = lazy(() => import("../../Components/DetailsPage/AdCardPopup"));
 const AllSectionArticle = lazy(() => import("../../Components/MainPage/SectionArticle"));
 const ImageCard = lazy(() => import("../../Components/MainPage/ImageCard"));
-const ShirshCard = lazy(() => import("../../Components/MainPage/ShirshCard"));
 const BigNewsCard = lazy(() => import("../../Components/MainPage/BigNewsCard"));
 const AdCard = lazy(() => import("../../Components/Global/AdCard"));
 const StoriesCard = lazy(() => import("../../Components/MainPage/StoriesCard"));
@@ -31,47 +31,6 @@ const NewsCard = lazy(() => import("../../Components/MainPage/NewsCard"));
 const SimpleLoading = ({ className = "h-[200px]" }) => (
   <div className={`w-full ${className} bg-gray-100 rounded-lg`} />
 );
-
-const MemoizedNewsCard = memo(({ data, onPress, isLoading }) => (
-  <Suspense fallback={<SimpleLoading className="h-[100px]" />}>
-    {isLoading ? <SimpleLoading className="h-[100px]" /> : <NewsCard data={data} onPress={onPress} />}
-  </Suspense>
-));
-
-const MemoizedStoriesCard = memo(({ data, OnPress, image, wid, text, isLoading }) => (
-  <Suspense fallback={<SimpleLoading className="h-[80px]" />}>
-    {isLoading ? (
-      <SimpleLoading className="h-[80px]" />
-    ) : (
-      <StoriesCard data={data} OnPress={OnPress} image={image} wid={wid} text={text} />
-    )}
-  </Suspense>
-));
-
-const OptimizedImage = ({ src, alt, className = "", ...props }) => {
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [error, setError] = useState(false);
-
-  return (
-    <div className={`relative w-full ${className}`}>
-      {!isLoaded && !error && (
-        <div className="absolute inset-0 bg-gray-100 animate-pulse rounded" />
-      )}
-      <img
-        src={src}
-        alt={alt || "News image"}
-        loading="lazy"
-        decoding="async"
-        onLoad={() => setIsLoaded(true)}
-        onError={() => setError(true)}
-        className={`w-full transition-opacity duration-300 ease-in-out ${
-          isLoaded ? "opacity-100" : "opacity-0"
-        }`}
-        {...props}
-      />
-    </div>
-  );
-};
 
 const MainPage = () => {
   const [sliderItem, setSliderItem] = useState(0);
@@ -641,87 +600,10 @@ const MainPage = () => {
           </div>
 
           <div className="w-full">
-            <div id="VisualStories" className="px-[10px]">
-              <div className="text-lg font-semibold">{t("vs")}</div>
-              <div className="w-full">
-                <div className="flex overflow-x-auto gap-3">
-                  {stories.map((story) => {
-                    const prioritizedImage = story.images.find((image) => image.albumPeriority === true);
-                    const displayImage = prioritizedImage ? prioritizedImage.img : story.images[0]?.img;
-                    const displayText = prioritizedImage ? prioritizedImage.text : story.images[0]?.text;
-
-                    return (
-                      <a href={`/stories?id=${story._id}`} target="_blank" key={story._id} rel="noreferrer">
-                        <div className="w-32">
-                          <ImageCard
-                            className="text-[15px] font-normal h-[80px] rounded-none"
-                            height="300px"
-                            width="100"
-                            img={displayImage}
-                            id={story._id}
-                            title={displayText}
-                            text={story?.title}
-                            fromVStrories={true}
-                          />
-                        </div>
-                      </a>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
+            <VisualStories />
           </div>
 
-          <div id="Photos" className="relative w-full">
-            <div className="text-lg font-semibold px-[10px]">{t("ph")}</div>
-
-            <div className="w-[95%] flex justify-between mb-[10px] absolute bottom-[186px]">
-              <button
-                onClick={() => scrollLeft(photosRef)}
-                disabled={!photoScroll.left}
-                className="bg-white/60 border-none cursor-pointer text-2xl flex items-center disabled:opacity-40"
-              >
-                <IoChevronBack />
-              </button>
-              <button
-                onClick={() => scrollRight(photosRef)}
-                disabled={!photoScroll.right}
-                className="bg-white/60 border-none cursor-pointer text-2xl flex items-center disabled:opacity-40"
-              >
-                <IoChevronForward />
-              </button>
-            </div>
-
-            <div ref={photosRef} className="flex overflow-x-auto gap-5">
-              {photo &&
-                photo.map((img) => {
-                  const prioritizedImage = img?.images.find((image) => image.albumPeriority === true);
-                  const displayImage = prioritizedImage ? prioritizedImage.img : img?.images[0]?.img;
-                  const displayText = prioritizedImage ? prioritizedImage.text : img?.images[0]?.text;
-
-                  return (
-                    <div key={img._id} className="shrink-0 w-52">
-                      <a href={`/photos/${img?._id}`} target="_blank" rel="noreferrer">
-                        <div className="w-full">
-                          <img src={displayImage} alt={displayText || "Photo"} loading="lazy" className="w-full" />
-                        </div>
-                      </a>
-                      <div className="flex w-full justify-between items-center">
-                        <span className="uppercase text-sm font-medium">{img?.title.toUpperCase()}</span>
-                        <div className="flex gap-[5px] items-center">
-                          <span className="flex items-center leading-none">
-                            <IoCameraSharp />
-                          </span>
-                          <span className="leading-none">
-                            {img?.images?.length < 10 ? "0" + img?.images?.length : img?.images?.length}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-            </div>
-          </div>
+          <PhotoGallery />
         </div>
 
         <FlashNews />
@@ -835,42 +717,6 @@ const MainPage = () => {
               </div>
             </div>
           </div>
-
-          {/* <div id="TopStories" className="w-[30%]">
-            <div className="cursor-pointer" onClick={() => navigation(`/itempage2?newsType=topStories`)}>
-              <div className="font-semibold">{t("ts")}</div>
-            </div>
-            <div className="flex flex-col gap-2 mt-2">
-              {isLoading.topStories
-                ? null
-                : topStories
-                    ?.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
-                    .map((data, index) => {
-                      let title = data.title.replace(/[/\%.?]/g, "").split(" ").join("-");
-                      if (data.slug) title = data.slug;
-
-                      if (title && index < 6) {
-                        return (
-                          <ShirshCard
-                            data={data}
-                            key={data._id}
-                            OnPress={() => navigation(`/details/${title}?id=${data?._id}`)}
-                            image={data?.image}
-                            wid="w-[45%]"
-                            text={data?.title}
-                          />
-                        );
-                      }
-                      return null;
-                    })}
-              <div
-                className="flex items-center cursor-pointer mt-4 mr-[10px]"
-                onClick={() => navigation(`/itempage2?newsType=topStories`)}
-              >
-                {"और भी"} <FaGreaterThan className="ml-[6px]" />
-              </div>
-            </div>
-          </div> */}
 
           <TopStories />
         </div>
@@ -1024,40 +870,7 @@ const MainPage = () => {
           </Suspense>
         </div>
 
-        {stories && stories.length > 0 && (
-          <div id="VisualStories" className="hidden lg:block w-full">
-            <div className="text-lg font-semibold cursor-pointer" onClick={() => navigation(`/story`)}>
-              {t("vs")}
-            </div>
-
-            <div className="w-full">
-              <div className="flex overflow-x-auto gap-3">
-                {stories.map((story) => {
-                  const prioritizedImage = story.images.find((image) => image.albumPeriority === true);
-                  const displayImage = prioritizedImage ? prioritizedImage.img : story.images[0]?.img;
-                  const displayText = prioritizedImage ? prioritizedImage.text : story.images[0]?.text;
-
-                  return (
-                    <a href={`/stories?id=${story._id}`} target="_blank" key={story._id} rel="noreferrer">
-                      <div className="w-32">
-                        <ImageCard
-                          className="text-[15px] font-normal h-[80px] rounded-none"
-                          height="300px"
-                          width="100"
-                          img={displayImage}
-                          id={story._id}
-                          text={story.title}
-                          title={displayText}
-                          fromVStrories={true}
-                        />
-                      </div>
-                    </a>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        )}
+        <VisualStories />
 
         <PhotoGallery />
       </div>

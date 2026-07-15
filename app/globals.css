@@ -33,9 +33,6 @@
   }
 }
 
-body {
-  overflow-x: hidden !important;
-}
 
 button {
   cursor: pointer !important;

@@ -21,7 +21,6 @@ export function CommonProvider({ children }) {
     try {
       setState((prev) => ({ ...prev, loading: true, error: null }));
       const res = await fetch(`${API_URL}/common`);
-      console.log("API Response common:", res);
       const json = await res.json();
 
       if (json?.success) {

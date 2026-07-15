@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
-import { API_URL } from "../API"; // आपकी API URL फ़ाइल से
+import { API_URL } from "../API";
 
 const HomeContext = createContext({
   homeData: null,
@@ -22,6 +22,7 @@ export function HomeProvider({ children }) {
       setState((prev) => ({ ...prev, loading: true, error: null }));
       const res = await fetch(`${API_URL}/homepage`);
       const json = await res.json();
+      console.log(`home res`, json)
 
       if (json) {
         // क्योंकि आपकी API में सीधा ऑब्जेक्ट या json आ रहा है
