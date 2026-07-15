@@ -35,7 +35,6 @@ const SimpleLoading = ({ className = "h-[200px]" }) => (
 const MainPage = () => {
   const [sliderItem, setSliderItem] = useState(0);
   const [sliderItem2, setSliderItem2] = useState(1);
-  const [userData, setUserData] = useState([]);
   const [flashnews, setflashnews] = useState([]);
   const [video, setVideo] = useState([]);
   const [photo, setPhoto] = useState([]);
@@ -51,7 +50,6 @@ const MainPage = () => {
   const [currentPoll, setCurrentPoll] = useState(null);
   const [pollOptions, setPollOptions] = useState([]);
   const [selectedOption, setSelectedOption] = useState(null);
-  const [stories, setStories] = useState([]);
   const [allCategoriesData, setAllCategoriesData] = useState(null);
   const [priorityArticles, setPriorityArticles] = useState([]);
   const breakingNewsRef = useRef(null);
@@ -171,7 +169,6 @@ const MainPage = () => {
 
       settopStories(topStoriesRes.data);
       setLatestNews(latestRes.data);
-      setStories(storiesRes.data.filter((story) => story.status === true));
       setVideo(videosRes.data.filter((v) => v.status === true));
       setPhoto(
         photosRes.data
