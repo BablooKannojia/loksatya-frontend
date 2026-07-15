@@ -157,14 +157,13 @@ const MainPage = () => {
         axios.get(
           `${API_URL}/article?pagenation=true&limit=14&type=img&newsType=upload&status=online&priority=true`
         ),
-        axios.get(`${API_URL}/story`),
         axios.get(`${API_URL}/video`),
         axios.get(`${API_URL}/photo`),
         axios.get(`${API_URL}/polls`),
         axios.get(`${API_URL}/content?type=category`),
       ];
 
-      const [topStoriesRes, latestRes, storiesRes, videosRes, photosRes, pollsRes, categoriesRes] =
+      const [topStoriesRes, latestRes, videosRes, photosRes, pollsRes, categoriesRes] =
         await Promise.all(secondaryRequests);
 
       settopStories(topStoriesRes.data);
@@ -177,7 +176,7 @@ const MainPage = () => {
       );
       setCurrentPoll(pollsRes.data?.length > 0 ? pollsRes.data.slice(-1)[0] : null);
 
-      ["topStories", "latestNews", "stories", "videos", "photos", "polls"].forEach((key) => {
+      ["topStories", "latestNews", "videos", "photos", "polls"].forEach((key) => {
         updateLoadingState(key, false);
       });
 
