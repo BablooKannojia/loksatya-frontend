@@ -2,10 +2,11 @@
 const nextConfig = {
   reactStrictMode: true,
   images: {
+    qualities: [75, 80],
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "**",
+        hostname: 'firebasestorage.googleapis.com',
       },
       {
         protocol: "http",

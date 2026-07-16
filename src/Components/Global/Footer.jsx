@@ -72,13 +72,14 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* 2. कैटगरीज़ लिंक्स (मेन्यू की तरह डायनामिक लिस्ट) */}
-        <div>
+        {/* 2. कैटगरीज़ लिंक्स (मेन्यू की तरह डायनामिक लिस्ट - CLS Guarded) */}
+        <div className="min-h-[160px] w-full">
           <h3 className="text-[16px] font-bold text-white border-l-4 border-brand pl-2.5 mb-5 uppercase tracking-wide">
             प्रमुख श्रेणियां
           </h3>
           {loading ? (
-            <p className="text-sm text-gray-500">लोड हो रहा है...</p>
+            /* CLS Guard: लोडिंग के दौरान केवल इनविजिबल बॉक्स ताकि स्क्रीन जम्प न करे */
+            <div className="w-full h-28" />
           ) : (
             <ul className="grid grid-cols-2 gap-x-4 gap-y-2.5 text-[14px]">
               {/* स्टेटिक होम लिंक */}

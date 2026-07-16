@@ -205,7 +205,6 @@ function HeaderNav({ menu }) {
                               }}
                               className="px-4 py-2.5 text-ink-soft hover:text-brand"
                             >
-                              {/* 🌟 'और' ड्रॉपडाउन के अंदर का शेवरॉन */}
                               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className={`w-3 h-3 transition-transform duration-200 ${isSubOpen ? "rotate-180 text-brand" : ""}`}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
                               </svg>
@@ -269,9 +268,9 @@ export default function Header() {
         <span className="font-medium">सबसे तेज़, सबसे सटीक खबरें</span>
       </div>
 
-      {/* ===== Header ===== */}
+      {/* ===== Header (UI Structure 100% Original As Before) ===== */}
       <header className="sticky top-0 z-40 bg-brand shadow-md">
-        <div className="mx-auto flex max-w-7xl items-center gap-6 px-5 py-0"> {/* py कम किया क्योंकि लोगो बाहर निकलेगा */}
+        <div className="mx-auto flex max-w-7xl items-center gap-6 px-5 py-0"> 
           
           {/* 🌟 आज़तक जैसा उभरा (Pop-out) हुआ लोगो */}
           <Link
@@ -290,11 +289,14 @@ export default function Header() {
           </Link>
 
           {/* Nav — Desktop only */}
-          {!loading && menu.length > 0 && (
-            <div className="hidden lg:block lg:flex-1 lg:min-w-0 py-2.5">
-              <HeaderNav menu={menu} />
-            </div>
-          )}
+          <div className="hidden lg:block lg:flex-1 lg:min-w-0 py-2.5">
+            {loading ? (
+              /* CLS Guard: लोडिंग के दौरान सिर्फ इनविजिबल हाइट होल्डर ताकि ओरिजिनल हाइट डिस्टर्ब न हो */
+              <div className="h-9 w-full" />
+            ) : (
+              menu.length > 0 && <HeaderNav menu={menu} />
+            )}
+          </div>
 
           {/* Hamburger (Mobile only) */}
           <button
@@ -388,7 +390,7 @@ export default function Header() {
                           <Link
                             href={categoryHref(sub.text)}
                             onClick={() => setDrawerOpen(false)}
-                            className="block border-l-4 border-transparent py-2.5 pl-[34px] pr-4 text-[13.5px] text-ink-soft hover:border-brand hover:text-brand"
+                            className="block border-l-4 border-transparent py-2.5 pl-[34px] pr-4 text-[13.5px] text-ink-soft hover:border-brand hover:bg-brand-light hover:text-brand"
                           >
                             {sub.text}
                           </Link>
