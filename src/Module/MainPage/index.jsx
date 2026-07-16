@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState, lazy, memo, Suspense, useCallback } from "react";
-import { FaGreaterThan } from "react-icons/fa6";
 import { useTranslation } from "react-i18next";
 import axios from "axios";
 import {
@@ -15,13 +14,13 @@ import FlashNews from "../../Components/Global/FlashNews"
 import PhotoGallery from "../../Components/Global/PhotoGallery"
 import VisualStories from "../../Components/Global/VisualStories"
 import HomeHeroSection from "../../Components/Global/BreakingLatest"
-import { useCommonData } from "../../Context/CommonContext";
 import AllSectionArticle from "../../components/MainPage/SectionArticle";
 import { useHomeData } from "@/src/Context/HomeContext";
+import { useCommonData } from "../../Context/CommonContext";
+
 
 const ImageCard = lazy(() => import("../../components/MainPage/ImageCard"));
 const BigNewsCard = lazy(() => import("../../Components/MainPage/BigNewsCard"));
-const NewsCard = lazy(() => import("../../Components/MainPage/NewsCard"));
 
 const SimpleLoading = ({ className = "h-[200px]" }) => (
   <div className={`w-full ${className} bg-gray-100 rounded-lg`} />
@@ -30,15 +29,12 @@ const SimpleLoading = ({ className = "h-[200px]" }) => (
 const MainPage = () => {
   const [sliderItem, setSliderItem] = useState(0);
   const [sliderItem2, setSliderItem2] = useState(1);
-  const [flashnews, setflashnews] = useState([]);
-  const [latestNews, setLatestNews] = useState([]);
   const [breakingNews, setbreakingNews] = useState([]);
   const [sliderArticles, setSliderArticles] = useState([]);
   const [combinedNews, setCombinedNews] = useState([]);
   const { t } = useTranslation();
   const router = useRouter();
   const navigation = router.push;
-  const [currentPoll, setCurrentPoll] = useState(null);
   const [pollOptions, setPollOptions] = useState([]);
   const [selectedOption, setSelectedOption] = useState(null);
   const breakingNewsRef = useRef(null);
@@ -46,7 +42,6 @@ const MainPage = () => {
   const [fixedArticles, setFixedArticles] = useState({ first: null, second: null });
   const [fixedArticlesmobile, setFixedArticlesMobile] = useState([]);
   const [isLoading, setIsLoading] = useState({
-    flashNews: true,
     slider: true,
     breakingNews: true,
     latestNews: true,
@@ -57,7 +52,7 @@ const MainPage = () => {
     critical: true,
   });
   const { categoryArticles, priorityArticles } = useCommonData();
-  const { homeData, loading, error } = useHomeData();
+  const { homeData } = useHomeData();
 
   const dummySubmitVote = (pollId, index) => console.log("Voted:", pollId, index);
 
@@ -77,16 +72,6 @@ const MainPage = () => {
     };
   }, []);
 
-  useEffect(() => {
-    if (currentPoll && currentPoll.options) {
-      const totalVotes = currentPoll.options.reduce((sum, option) => sum + (option.votes || 0), 0);
-      const optionsWithPercentages = currentPoll.options.map((option) => ({
-        ...option,
-        percentage: totalVotes > 0 ? ((option.votes || 0) / totalVotes) * 100 : 0,
-      }));
-      setPollOptions(optionsWithPercentages);
-    }
-  }, [currentPoll]);
 
   useEffect(() => {
     setIsMobile(window.innerWidth < 768);
@@ -101,7 +86,6 @@ const MainPage = () => {
   const fetchDataInPhases = async () => {
     try {
       const criticalRequests = [
-        axios.get(`${API_URL}/flashnews`),
         axios.get(`${API_URL}/article?fixedPosition=1&status=online`),
         axios.get(`${API_URL}/article?fixedPosition=2&status=online`),
         axios.get(`${API_URL}/article?pagenation=true&limit=8&type=img&status=online&slider=true`),
@@ -110,11 +94,9 @@ const MainPage = () => {
         ),
       ];
 
-      const [flashNewsRes, fixed1Res, fixed2Res, sliderRes, breakingRes] = await Promise.all(
+      const [fixed1Res, fixed2Res, sliderRes, breakingRes] = await Promise.all(
         criticalRequests
       );
-
-      setflashnews(flashNewsRes.data.data.filter((item) => item.status === "active"));
 
       const fixed1 = fixed1Res.data[0] || null;
       const fixed2 = fixed2Res.data[0] || null;
@@ -126,7 +108,6 @@ const MainPage = () => {
       setbreakingNews(breakingRes.data);
 
       updateLoadingState("critical", false);
-      updateLoadingState("flashNews", false);
       updateLoadingState("slider", false);
       updateLoadingState("breakingNews", false);
 
@@ -443,127 +424,17 @@ const MainPage = () => {
           <TopStories />
         </div>
 
-        {/* <div className="hidden lg:flex w-full">
-          <div id="LatestNews" className="flex flex-col pt-3 p-6 w-2/3">
-            <div className="text-xl font-semibold cursor-pointer" onClick={() => navigation(`/itempage2?newsType=upload`)}>
-              {t("ln")}
-            </div>
-            <div className="grid grid-cols-2 gap-3 w-full mt-2">
-              {latestNews.slice(0, 6).map((data) => {
-                let title = data?.title?.replace(/[/\%.?]/g, "").split(" ").join("-");
-                if (data.slug) title = data.slug;
-                if (!title) return null;
-
-                return (
-                  <div key={data?._id} className="w-full">
-                    <NewsCard data={data} onPress={() => navigation(`/details/${title}?id=${data._id}`)} />
-                  </div>
-                );
-              })}
-            </div>
-            <div
-              className="flex items-center cursor-pointer mt-3 mr-[40px]"
-              onClick={() => navigation(`/itempage2?newsType=upload`)}
-            >
-              {"और भी"} <FaGreaterThan className="ml-[6px]" />
-            </div>
-          </div>
-
-          <div className="w-1/3">
-            <div id="BigNews" className="p-4">
-              <div
-                className="text-xl font-semibold cursor-pointer"
-                onClick={() => navigation(`/itempage2?newsType=breakingNews`)}
-              >
-                {t("bn")}
-              </div>
-              <div className="flex flex-col gap-3 mt-2">
-                {breakingNews &&
-                  breakingNews.length > 2 &&
-                  breakingNews.slice(2, 5).map((data) => {
-                    let title = data?.title?.replace(/[/\%.?]/g, "").split(" ").join("-");
-                    if (data.slug) title = data.slug;
-                    if (!title) return null;
-
-                    return (
-                      <div key={data?._id}>
-                        <NewsCard data={data} onPress={() => navigation(`/details/${title}?id=${data._id}`)} />
-                      </div>
-                    );
-                  })}
-              </div>
-              <div
-                className="flex items-center cursor-pointer mt-3"
-                onClick={() => navigation(`/itempage2?newsType=breakingNews`)}
-              >
-                {"और भी"} <FaGreaterThan className="ml-[6px]" />
-              </div>
-            </div>
-
-            <div className="px-4">
-            
-              <div className="w-full bg-white mt-[10px] rounded-[10px] p-[10px] pb-[50px]">
-                {isLoading.polls ? (
-                  <SimpleLoading className="h-[120px]" />
-                ) : currentPoll ? (
-                  <>
-                    <div className="font-semibold text-lg text-start mb-5">{currentPoll?.question}</div>
-                    <div className="flex flex-wrap gap-3">
-                      {pollOptions.map((option, index) => (
-                        <label
-                          key={option._id || index}
-                          className={`relative overflow-hidden flex items-center rounded-[10px] border border-gray-300 pl-[10px] min-h-[40px] capitalize w-[calc(50%-6px)] ${
-                            selectedOption === null ? "cursor-pointer" : "cursor-default"
-                          }`}
-                        >
-                          <input
-                            type="radio"
-                            name={`poll-${currentPoll._id}`}
-                            value={index}
-                            checked={selectedOption === index}
-                            disabled={selectedOption !== null}
-                            onChange={() => submitVote(currentPoll._id, index)}
-                            className="mr-2 z-10"
-                          />
-                          <div className="text-[15px] font-semibold flex justify-between items-center w-full z-10">
-                            <span>{option.optionText}</span>
-                            {selectedOption !== null && (
-                              <span className="text-xs text-gray-500">{option.percentage.toFixed(1)}%</span>
-                            )}
-                          </div>
-
-                          {selectedOption !== null && (
-                            <div
-                              className="absolute left-0 top-0 h-full bg-blue-500/10 transition-[width] duration-300 ease-in-out"
-                              style={{ width: `${option.percentage}%` }}
-                            />
-                          )}
-                        </label>
-                      ))}
-                    </div>
-
-                    {selectedOption !== null && (
-                      <div className="mt-5 text-center text-gray-500 text-sm">Thank you for voting!</div>
-                    )}
-                  </>
-                ) : (
-                  <div className="text-center p-5 text-gray-500">No active polls available</div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div> */}
         <div className="flex flex-col gap-8 md:gap-12 w-full px-2 sm:px-4">
           <HomeHeroSection
             latestNews={homeData?.latestNews || []}
             breakingNews={homeData?.breakingNews || []}
-            currentPoll={homeData?.poll || null} // अगर पोल API में है, वरना ये डमी या स्टेट से आएगा
+            currentPoll={homeData?.poll || null}
             pollOptions={homeData?.poll?.options || []}
             selectedOption={null}
             isLoading={{ polls: false }}
             submitVote={dummySubmitVote}
             navigation={(path) => router.push(path)}
-            t={(key) => (key === "ln" ? "ताज़ा खबरें" : "बड़ी खबरें")} // ट्रांसलेशन हेल्पर
+            t={(key) => (key === "ln" ? "ताज़ा खबरें" : "बड़ी खबरें")}
           />
         </div>
         <div className="hidden lg:block">
