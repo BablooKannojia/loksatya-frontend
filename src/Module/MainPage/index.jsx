@@ -34,7 +34,6 @@ const MainPage = () => {
   const [sliderItem2, setSliderItem2] = useState(1);
   const [flashnews, setflashnews] = useState([]);
   const [video, setVideo] = useState([]);
-  const [photo, setPhoto] = useState([]);
   const [latestNews, setLatestNews] = useState([]);
   const [breakingNews, setbreakingNews] = useState([]);
   const [sliderArticles, setSliderArticles] = useState([]);
@@ -47,7 +46,6 @@ const MainPage = () => {
   const [pollOptions, setPollOptions] = useState([]);
   const [selectedOption, setSelectedOption] = useState(null);
   const breakingNewsRef = useRef(null);
-  const photosRef = useRef(null);
   const [isMobile, setIsMobile] = useState(false);
   const [fixedArticles, setFixedArticles] = useState({ first: null, second: null });
   const [fixedArticlesmobile, setFixedArticlesMobile] = useState([]);
@@ -57,7 +55,6 @@ const MainPage = () => {
     breakingNews: true,
     latestNews: true,
     videos: true,
-    photos: true,
     stories: true,
     polls: true,
     categories: true,
@@ -149,23 +146,17 @@ const MainPage = () => {
           `${API_URL}/article?pagenation=true&limit=14&type=img&newsType=upload&status=online&priority=true`
         ),
         axios.get(`${API_URL}/video`),
-        axios.get(`${API_URL}/photo`),
         axios.get(`${API_URL}/polls`),
       ];
 
-      const [latestRes, videosRes, photosRes, pollsRes] =
+      const [latestRes, videosRes, pollsRes] =
         await Promise.all(secondaryRequests);
 
       setLatestNews(latestRes.data);
       setVideo(videosRes.data.filter((v) => v.status === true));
-      setPhoto(
-        photosRes.data
-          .filter((p) => p.status === true)
-          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-      );
       setCurrentPoll(pollsRes.data?.length > 0 ? pollsRes.data.slice(-1)[0] : null);
 
-      ["latestNews", "videos", "photos", "polls"].forEach((key) => {
+      ["latestNews", "videos", "polls"].forEach((key) => {
         updateLoadingState(key, false);
       });
 
@@ -209,7 +200,6 @@ const MainPage = () => {
   }, [sliderArticles.length]);
 
   const [breakingScroll, setBreakingScroll] = useState({ left: false, right: true });
-  const [photoScroll, setPhotoScroll] = useState({ left: false, right: true });
 
   useEffect(() => {
     const container = breakingNewsRef.current;
@@ -226,30 +216,6 @@ const MainPage = () => {
     container.addEventListener("scroll", handleScroll);
     return () => container.removeEventListener("scroll", handleScroll);
   }, []);
-
-  useEffect(() => {
-    const container = photosRef.current;
-    if (!container) return;
-
-    const handleScroll = () => {
-      setPhotoScroll({
-        left: container.scrollLeft > 0,
-        right: container.scrollLeft < container.scrollWidth - container.clientWidth,
-      });
-    };
-
-    handleScroll();
-    container.addEventListener("scroll", handleScroll);
-    return () => container.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  const handlePrevClick = () => {
-    setCurrentIndex((prevIndex) => (prevIndex === 0 ? flashnews?.length - 1 : prevIndex - 1));
-  };
-
-  const handleNextClick = () => {
-    setCurrentIndex((prevIndex) => (prevIndex === flashnews?.length - 1 ? 0 : prevIndex + 1));
-  };
 
   const submitVote = async (pollId, optionIndex) => {
     if (selectedOption !== null) return;
