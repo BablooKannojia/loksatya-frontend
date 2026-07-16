@@ -130,34 +130,8 @@ const MainPage = () => {
       updateLoadingState("slider", false);
       updateLoadingState("breakingNews", false);
 
-      setTimeout(() => loadSecondaryData(), 100);
     } catch (error) {
       console.error("Error fetching critical data:", error);
-      setTimeout(() => loadSecondaryData(), 100);
-    }
-  };
-
-  const loadSecondaryData = async () => {
-    try {
-      const secondaryRequests = [
-        axios.get(
-          `${API_URL}/article?pagenation=true&limit=14&type=img&newsType=upload&status=online&priority=true`
-        ),
-        axios.get(`${API_URL}/polls`),
-      ];
-
-      const [latestRes, pollsRes] =
-        await Promise.all(secondaryRequests);
-
-      setLatestNews(latestRes.data);
-      setCurrentPoll(pollsRes.data?.length > 0 ? pollsRes.data.slice(-1)[0] : null);
-
-      ["latestNews", "polls"].forEach((key) => {
-        updateLoadingState(key, false);
-      });
-
-    } catch (error) {
-      console.error("Error fetching secondary data:", error);
     }
   };
 
