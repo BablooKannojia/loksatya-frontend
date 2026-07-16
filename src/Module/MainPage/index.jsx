@@ -1,28 +1,26 @@
 "use client";
 
 import { useEffect, useRef, useState, lazy, memo, Suspense, useCallback } from "react";
-import { IoMdArrowDropleft, IoMdArrowDropright } from "react-icons/io";
 import { FaGreaterThan } from "react-icons/fa6";
 import { useTranslation } from "react-i18next";
 import axios from "axios";
 import {
   IoChevronBack,
   IoChevronForward,
-  IoPlayCircle,
 } from "react-icons/io5";
 import { API_URL } from "../../API";
 import { useRouter } from "next/navigation";
-import VdoThumb from "../../Components/common/VdoThumb";
 import TopStories from "../../Components/Global/TopStories"
 import FlashNews from "../../Components/Global/FlashNews"
 import PhotoGallery from "../../Components/Global/PhotoGallery"
 import VisualStories from "../../Components/Global/VisualStories"
+import HomeHeroSection from "../../Components/Global/BreakingLatest"
 import { useCommonData } from "../../Context/CommonContext";
 import AllSectionArticle from "../../components/MainPage/SectionArticle";
+import { useHomeData } from "@/src/Context/HomeContext";
 
 const ImageCard = lazy(() => import("../../components/MainPage/ImageCard"));
 const BigNewsCard = lazy(() => import("../../Components/MainPage/BigNewsCard"));
-const StoriesCard = lazy(() => import("../../Components/MainPage/StoriesCard"));
 const NewsCard = lazy(() => import("../../Components/MainPage/NewsCard"));
 
 const SimpleLoading = ({ className = "h-[200px]" }) => (
@@ -33,7 +31,6 @@ const MainPage = () => {
   const [sliderItem, setSliderItem] = useState(0);
   const [sliderItem2, setSliderItem2] = useState(1);
   const [flashnews, setflashnews] = useState([]);
-  const [video, setVideo] = useState([]);
   const [latestNews, setLatestNews] = useState([]);
   const [breakingNews, setbreakingNews] = useState([]);
   const [sliderArticles, setSliderArticles] = useState([]);
@@ -41,7 +38,6 @@ const MainPage = () => {
   const { t } = useTranslation();
   const router = useRouter();
   const navigation = router.push;
-  const [currentIndex, setCurrentIndex] = useState(0);
   const [currentPoll, setCurrentPoll] = useState(null);
   const [pollOptions, setPollOptions] = useState([]);
   const [selectedOption, setSelectedOption] = useState(null);
@@ -54,14 +50,16 @@ const MainPage = () => {
     slider: true,
     breakingNews: true,
     latestNews: true,
-    videos: true,
     stories: true,
     polls: true,
     categories: true,
     ads: true,
     critical: true,
   });
- const { categoryArticles, priorityArticles } = useCommonData();
+  const { categoryArticles, priorityArticles } = useCommonData();
+  const { homeData, loading, error } = useHomeData();
+
+  const dummySubmitVote = (pollId, index) => console.log("Voted:", pollId, index);
 
   const updateLoadingState = (key, value) => {
     setIsLoading((prev) => ({ ...prev, [key]: value }));
@@ -145,18 +143,16 @@ const MainPage = () => {
         axios.get(
           `${API_URL}/article?pagenation=true&limit=14&type=img&newsType=upload&status=online&priority=true`
         ),
-        axios.get(`${API_URL}/video`),
         axios.get(`${API_URL}/polls`),
       ];
 
-      const [latestRes, videosRes, pollsRes] =
+      const [latestRes, pollsRes] =
         await Promise.all(secondaryRequests);
 
       setLatestNews(latestRes.data);
-      setVideo(videosRes.data.filter((v) => v.status === true));
       setCurrentPoll(pollsRes.data?.length > 0 ? pollsRes.data.slice(-1)[0] : null);
 
-      ["latestNews", "videos", "polls"].forEach((key) => {
+      ["latestNews", "polls"].forEach((key) => {
         updateLoadingState(key, false);
       });
 
@@ -247,33 +243,11 @@ const MainPage = () => {
     }
   };
 
-  const [adPopup, setAdPopup] = useState(false);
-
-  useEffect(() => {
-    setAdPopup(true);
-  }, []);
-
   return (
     <div className="relative">
 
       <div className="w-full">
         <div className="block lg:hidden">
-          {video?.map((item, index) => {
-            let title = item.title.replace(/[/\%.?]/g, "").split(" ").join("-");
-            if (item.slug) title = item.slug;
-            if (index >= 1) return null;
-
-            return (
-              <div
-                key={item._id}
-                onClick={() => navigation(`/videos2/${title}?id=${item?._id}`)}
-                className="relative w-full h-[220px] cursor-pointer"
-              >
-                <IoPlayCircle className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-red-600 text-white text-5xl" />
-                <video className="w-full h-full object-cover" src={item.image} />
-              </div>
-            );
-          })}
 
           <FlashNews />
 
@@ -314,115 +288,6 @@ const MainPage = () => {
               )}
             </div>
           </div>
-
-          {/* <div className="flex gap-7 w-full">
-            <div className="w-[70%]">
-              <div className="flex w-full">
-                <div className="relative w-1/2">
-                  {isLoading.breakingNews ? (
-                    <SimpleLoading className="h-full" />
-                  ) : (
-                    <ImageCard
-                      height="100%"
-                      width="100%"
-                      img={breakingNews?.[0]?.image}
-                      text={breakingNews?.[0]?.title}
-                      title={breakingNews?.[0]?.title?.replace(/[/\%.?]/g, "").split(" ").join("-")}
-                      slug={breakingNews?.[0]?.slug}
-                      id={breakingNews?.[0]?._id}
-                    />
-                  )}
-                </div>
-                <div className="w-1/2 ml-[10px]">
-                  {isLoading.breakingNews ? (
-                    <SimpleLoading className="h-full" />
-                  ) : (
-                    <ImageCard
-                      img={breakingNews?.[1]?.image}
-                      text={breakingNews?.[1]?.title}
-                      title={breakingNews?.[1]?.title?.replace(/[/\%.?]/g, "").split(" ").join("-")}
-                      slug={breakingNews?.[1]?.slug}
-                      id={breakingNews?.[1]?._id}
-                      height="100%"
-                      width="100%"
-                    />
-                  )}
-                </div>
-              </div>
-
-              <div className="flex w-full mt-[5%]">
-                <div className="w-1/2">
-                  {isLoading.slider ? (
-                    <SimpleLoading className="h-full" />
-                  ) : (
-                    <ImageCard
-                      height="100%"
-                      width="100%"
-                      img={sliderArticles?.[0]?.image}
-                      text={sliderArticles?.[0]?.title}
-                      title={sliderArticles?.[0]?.title?.replace(/[/\%.?]/g, "").split(" ").join("-")}
-                      id={sliderArticles?.[0]?._id}
-                    />
-                  )}
-                </div>
-                <div className="w-1/2 ml-[10px]">
-                  {isLoading.slider ? (
-                    <SimpleLoading className="h-full" />
-                  ) : (
-                    <ImageCard
-                      img={sliderArticles?.[1]?.image}
-                      text={sliderArticles?.[1]?.title}
-                      title={sliderArticles?.[1]?.title?.replace(/[/\%.?]/g, "").split(" ").join("-")}
-                      id={sliderArticles?.[1]?._id}
-                      height="100%"
-                      width="100%"
-                    />
-                  )}
-                </div>
-              </div>
-
-              <div
-                className="flex items-center cursor-pointer mt-2"
-                onClick={() => navigation(`/itempage2?newsType=topStories`)}
-              >
-                {"और भी"} <FaGreaterThan className="ml-[6px]" />
-              </div>
-            </div>
-
-            <div id="TopStories" className="w-[30%]">
-              <div className="w-full">
-                <div className="flex w-full pr-4 justify-between items-center">
-                  <div className="w-[40%]">{t("ts")}</div>
-                  <span className="bg-red-600 h-0.5 w-[60%]"> </span>
-                </div>
-              </div>
-              <div className="flex flex-col gap-2 mt-2">
-                {isLoading.topStories
-                  ? null
-                  : topStories
-                      ?.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
-                      .map((data, index) => {
-                        let title = data.title.replace(/[/\%.?]/g, "").split(" ").join("-");
-                        if (data.slug) title = data.slug;
-
-                        if (title && index < 5) {
-                          return (
-                            <div key={data._id} className="w-full">
-                              <StoriesCard
-                                data={data}
-                                OnPress={() => navigation(`/details/${title}?id=${data?._id}`)}
-                                image={data?.image}
-                                wid="w-[45%]"
-                                text={data?.title}
-                              />
-                            </div>
-                          );
-                        }
-                        return null;
-                      })}
-              </div>
-            </div>
-          </div> */}
 
           <div className="w-full border-t-2 border-gray-300 mt-4">
             <div id="BigNews" className="flex flex-col relative w-full">
@@ -604,7 +469,7 @@ const MainPage = () => {
           <TopStories />
         </div>
 
-        <div className="hidden lg:flex w-full">
+        {/* <div className="hidden lg:flex w-full">
           <div id="LatestNews" className="flex flex-col pt-3 p-6 w-2/3">
             <div className="text-xl font-semibold cursor-pointer" onClick={() => navigation(`/itempage2?newsType=upload`)}>
               {t("ln")}
@@ -713,37 +578,20 @@ const MainPage = () => {
               </div>
             </div>
           </div>
+        </div> */}
+        <div className="flex flex-col gap-8 md:gap-12 w-full px-2 sm:px-4">
+          <HomeHeroSection
+            latestNews={homeData?.latestNews || []}
+            breakingNews={homeData?.breakingNews || []}
+            currentPoll={homeData?.poll || null} // अगर पोल API में है, वरना ये डमी या स्टेट से आएगा
+            pollOptions={homeData?.poll?.options || []}
+            selectedOption={null}
+            isLoading={{ polls: false }}
+            submitVote={dummySubmitVote}
+            navigation={(path) => router.push(path)}
+            t={(key) => (key === "ln" ? "ताज़ा खबरें" : "बड़ी खबरें")} // ट्रांसलेशन हेल्पर
+          />
         </div>
-
-        <div className="bg-blue-600 p-4 lg:px-10 h-fit">
-          <h1 id="Videos" className="text-xl font-semibold text-white">
-            Videos
-          </h1>
-          <div className="flex">
-            <div className="flex flex-col gap-3">
-              {video.slice(0, 2).map((vdo) => (
-                <VdoThumb key={vdo._id} data={vdo} />
-              ))}
-            </div>
-            <div className="w-px bg-white"></div>
-            <div className="flex justify-center items-center flex-1">
-              <VdoThumb height={true} data={video[2]} />
-            </div>
-            <div className="w-px bg-white"></div>
-            <div className="flex flex-col gap-3">
-              {video.slice(3, 5).map((vdo) => (
-                <VdoThumb key={vdo._id} data={vdo} />
-              ))}
-            </div>
-          </div>
-          <div
-            className="flex items-center cursor-pointer -mt-4 sm:mt-[25px] text-white"
-            onClick={() => navigation("/itempage2?newsType=videos")}
-          >
-            {"और भी"} <FaGreaterThan className="ml-[6px]" />
-          </div>
-        </div>
-
         <div className="hidden lg:block">
           <Suspense fallback={null}>
             <AllSectionArticle data={categoryArticles} priorityArticles={priorityArticles} />
