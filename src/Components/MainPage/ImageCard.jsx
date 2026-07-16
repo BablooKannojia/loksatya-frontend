@@ -6,56 +6,35 @@ import OptimizedImg from "../OptimizedImage";
 
 const ImageCard = ({
   fromVStrories = false,
-  width,
-  height,
+  width = "100%",
+  height = "100%",
   img,
   text,
-  style,
-  border = "0px",
+  border = "rounded-sm", // Tailwind class
   id,
   slug,
   dis,
 }) => {
   const router = useRouter();
 
-  const imageStyle = {
-    width: "100%",
-    height: "100%",
-    borderRadius: border,
-    objectFit: "cover",
+  const handleCardClick = () => {
+    if (dis === false) return;
+    
+    if (fromVStrories) {
+      console.log("Visual story");
+    } else {
+      router.push(`/details/${slug}?id=${id}`);
+    }
   };
 
   return (
     <div
-      className="image-box"
-      style={{ 
-        width, 
-        height, 
-        borderRadius: border, 
-        cursor: "pointer",
-        position: 'relative',
-        overflow: 'hidden',
-        background: 'transparent'
-      }}
-      onClick={() => {
-        if (dis === false) {
-          return;
-        } else {
-          if (fromVStrories) {
-            console.log("Visual story");
-          } else {
-            router.push(`/details/${slug}?id=${id}`);
-          }
-        }
-      }}
+      className={`relative overflow-hidden cursor-pointer group ${border}`}
+      style={{ width, height }}
+      onClick={handleCardClick}
     >
-      {/* Image Container */}
-      <div style={{ 
-        width: "100%", 
-        height: "100%",
-        position: 'relative'
-      }}>
-        {/* Conditional rendering based on img type */}
+      {/* 🖼️ Image Container */}
+      <div className="w-full h-full relative">
         {Array.isArray(img) && img.length > 1 ? (
           <SimpleSlider duration={5000} indicators={true}>
             {img.map((imgSrc, index) => (
@@ -63,7 +42,7 @@ const ImageCard = ({
                 key={index}
                 src={imgSrc}
                 alt={text || `Image ${index + 1}`}
-                style={imageStyle}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               />
             ))}
           </SimpleSlider>
@@ -71,43 +50,17 @@ const ImageCard = ({
           <OptimizedImg
             src={Array.isArray(img) ? img[0] : img}
             alt={text || "News image"}
-            style={imageStyle}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
         )}
       </div>
 
-      {/* Transparent Text Overlay */}
+      {/* 🖤 Premium Dark Gradient Overlay & Text (जैसी टॉप स्टोरीज में है) */}
       {text && (
-        <div 
-          className="image-text-box"
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            width: '100%',
-            color: 'white',
-            borderRadius: `0 0 ${border} ${border}`
-          }}
-        >
-          <div style={{
-            ...style,
-            backgroundColor: '#0808084d',
-            color: 'white',
-            fontSize: '21px',
-            fontWeight: '700',
-            lineHeight: '1.4',
-            height: '70px',
-            overflow: 'hidden',
-            padding: '10px',
-            width: '100%',
-            margin: 0,
-            display: '-webkit-box',
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical',
-          }}>
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent pt-12 pb-3 px-3 flex flex-col justify-end">
+          <p className="text-white font-bold text-[15px] sm:text-[16px] leading-snug line-clamp-2">
             {text}
-          </div>
+          </p>
         </div>
       )}
     </div>

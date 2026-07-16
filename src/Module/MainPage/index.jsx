@@ -6,7 +6,6 @@ import { FaGreaterThan } from "react-icons/fa6";
 import { useTranslation } from "react-i18next";
 import axios from "axios";
 import {
-  IoCameraSharp,
   IoChevronBack,
   IoChevronForward,
   IoPlayCircle,
@@ -18,16 +17,14 @@ import TopStories from "../../Components/Global/TopStories"
 import FlashNews from "../../Components/Global/FlashNews"
 import PhotoGallery from "../../Components/Global/PhotoGallery"
 import VisualStories from "../../Components/Global/VisualStories"
+import { useCommonData } from "../../Context/CommonContext";
+import AllSectionArticle from "../../components/MainPage/SectionArticle";
 
-const AdCardPopup = lazy(() => import("../../Components/DetailsPage/AdCardPopup"));
-const AllSectionArticle = lazy(() => import("../../Components/MainPage/SectionArticle"));
-const ImageCard = lazy(() => import("../../Components/MainPage/ImageCard"));
+const ImageCard = lazy(() => import("../../components/MainPage/ImageCard"));
 const BigNewsCard = lazy(() => import("../../Components/MainPage/BigNewsCard"));
-const AdCard = lazy(() => import("../../Components/Global/AdCard"));
 const StoriesCard = lazy(() => import("../../Components/MainPage/StoriesCard"));
 const NewsCard = lazy(() => import("../../Components/MainPage/NewsCard"));
 
-/* Lightweight loading placeholder — Tailwind only, no animation library */
 const SimpleLoading = ({ className = "h-[200px]" }) => (
   <div className={`w-full ${className} bg-gray-100 rounded-lg`} />
 );
@@ -43,15 +40,12 @@ const MainPage = () => {
   const [sliderArticles, setSliderArticles] = useState([]);
   const [combinedNews, setCombinedNews] = useState([]);
   const { t } = useTranslation();
-  const [topStories, settopStories] = useState([]);
   const router = useRouter();
   const navigation = router.push;
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentPoll, setCurrentPoll] = useState(null);
   const [pollOptions, setPollOptions] = useState([]);
   const [selectedOption, setSelectedOption] = useState(null);
-  const [allCategoriesData, setAllCategoriesData] = useState(null);
-  const [priorityArticles, setPriorityArticles] = useState([]);
   const breakingNewsRef = useRef(null);
   const photosRef = useRef(null);
   const [isMobile, setIsMobile] = useState(false);
@@ -61,7 +55,6 @@ const MainPage = () => {
     flashNews: true,
     slider: true,
     breakingNews: true,
-    topStories: true,
     latestNews: true,
     videos: true,
     photos: true,
@@ -71,6 +64,7 @@ const MainPage = () => {
     ads: true,
     critical: true,
   });
+ const { categoryArticles, priorityArticles } = useCommonData();
 
   const updateLoadingState = (key, value) => {
     setIsLoading((prev) => ({ ...prev, [key]: value }));
@@ -152,21 +146,16 @@ const MainPage = () => {
     try {
       const secondaryRequests = [
         axios.get(
-          `${API_URL}/article?pagenation=true&limit=10&type=img&newsType=topStories&status=online&priority=true`
-        ),
-        axios.get(
           `${API_URL}/article?pagenation=true&limit=14&type=img&newsType=upload&status=online&priority=true`
         ),
         axios.get(`${API_URL}/video`),
         axios.get(`${API_URL}/photo`),
         axios.get(`${API_URL}/polls`),
-        axios.get(`${API_URL}/content?type=category`),
       ];
 
-      const [topStoriesRes, latestRes, videosRes, photosRes, pollsRes, categoriesRes] =
+      const [latestRes, videosRes, photosRes, pollsRes] =
         await Promise.all(secondaryRequests);
 
-      settopStories(topStoriesRes.data);
       setLatestNews(latestRes.data);
       setVideo(videosRes.data.filter((v) => v.status === true));
       setPhoto(
@@ -176,45 +165,12 @@ const MainPage = () => {
       );
       setCurrentPoll(pollsRes.data?.length > 0 ? pollsRes.data.slice(-1)[0] : null);
 
-      ["topStories", "latestNews", "videos", "photos", "polls"].forEach((key) => {
+      ["latestNews", "videos", "photos", "polls"].forEach((key) => {
         updateLoadingState(key, false);
       });
 
-      setTimeout(() => loadCategoriesData(categoriesRes.data), 500);
     } catch (error) {
       console.error("Error fetching secondary data:", error);
-    }
-  };
-
-  const loadCategoriesData = async (categories) => {
-    try {
-      const sortedCategories = [...categories].sort((a, b) => {
-        const seqA = a.sequence !== undefined ? a.sequence : Number.MAX_VALUE;
-        const seqB = b.sequence !== undefined ? b.sequence : Number.MAX_VALUE;
-        return seqA - seqB;
-      });
-
-      const categoryNames = sortedCategories.map((category) => category.text);
-
-      const categoryData = await Promise.all(
-        categoryNames.map(async (category) => {
-          try {
-            const response = await axios.get(
-              `${API_URL}/article?pagenation=true&limit=7&category=${category}&type=img&priority=true&status=online`
-            );
-            return response.data.length > 0 ? { category, imgData: response.data } : null;
-          } catch (error) {
-            console.error(`Error fetching category ${category}:`, error);
-            return null;
-          }
-        })
-      );
-
-      setAllCategoriesData(categoryData.filter(Boolean));
-      updateLoadingState("categories", false);
-    } catch (error) {
-      console.error("Error loading categories:", error);
-      updateLoadingState("categories", false);
     }
   };
 
@@ -333,15 +289,6 @@ const MainPage = () => {
 
   return (
     <div className="relative">
-      <div>
-        {adPopup && (
-          <Suspense fallback={null}>
-            <div className="absolute">
-              <AdCardPopup type={"top"} adPopup={adPopup} setAdPopup={setAdPopup} />
-            </div>
-          </Suspense>
-        )}
-      </div>
 
       <div className="w-full">
         <div className="block lg:hidden">
@@ -362,25 +309,7 @@ const MainPage = () => {
             );
           })}
 
-          <div className="w-full">
-            <div className="w-full">
-              <div className="flex flex-col">
-                <div className="flex items-center justify-between">
-                  <div className="truncate">
-                    {flashnews?.length > 0 && (
-                      <a href={flashnews[currentIndex]?.link} className="no-underline text-black">
-                        {flashnews[currentIndex]?.slugName?.substring(0, 45)}
-                      </a>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <IoMdArrowDropleft size={25} onClick={handlePrevClick} className="cursor-pointer" />
-                    <IoMdArrowDropright size={25} onClick={handleNextClick} className="cursor-pointer" />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <FlashNews />
 
           <div className="flex justify-between mt-[3%] px-[9px] overflow-hidden">
             <div className="w-full">
@@ -420,15 +349,7 @@ const MainPage = () => {
             </div>
           </div>
 
-          <div>
-            <div className="flex items-center justify-center my-2 mt-4">
-              <div className="w-full">
-                <AdCard type={"mid"} />
-              </div>
-            </div>
-          </div>
-
-          <div className="flex gap-7 w-full">
+          {/* <div className="flex gap-7 w-full">
             <div className="w-[70%]">
               <div className="flex w-full">
                 <div className="relative w-1/2">
@@ -535,7 +456,7 @@ const MainPage = () => {
                       })}
               </div>
             </div>
-          </div>
+          </div> */}
 
           <div className="w-full border-t-2 border-gray-300 mt-4">
             <div id="BigNews" className="flex flex-col relative w-full">
@@ -591,7 +512,7 @@ const MainPage = () => {
 
           <div className="block lg:hidden">
             <Suspense fallback={null}>
-              <AllSectionArticle data={allCategoriesData} priorityArticles={priorityArticles} />
+              <AllSectionArticle data={categoryArticles} priorityArticles={priorityArticles} />
             </Suspense>
           </div>
 
@@ -775,10 +696,7 @@ const MainPage = () => {
             </div>
 
             <div className="px-4">
-              <div className="w-full">
-                <AdCard type={"mid"} />
-              </div>
-
+            
               <div className="w-full bg-white mt-[10px] rounded-[10px] p-[10px] pb-[50px]">
                 {isLoading.polls ? (
                   <SimpleLoading className="h-[120px]" />
@@ -862,7 +780,7 @@ const MainPage = () => {
 
         <div className="hidden lg:block">
           <Suspense fallback={null}>
-            <AllSectionArticle data={allCategoriesData} priorityArticles={priorityArticles} />
+            <AllSectionArticle data={categoryArticles} priorityArticles={priorityArticles} />
           </Suspense>
         </div>
 

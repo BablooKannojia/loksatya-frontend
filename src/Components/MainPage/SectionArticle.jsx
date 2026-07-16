@@ -1,47 +1,46 @@
 "use client";
 
 import { useMemo } from "react";
-import { FaGreaterThan } from "react-icons/fa6";
 import ImageCard from "./ImageCard";
-import VideoCard from "./VideoCard";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { memo } from "react";
-import { Slide } from "../common/SimpleSlider";
-import VdoThumb from "../common/VdoThumb";
 
-const AllSectionArticle = ({ data, priorityArticles = [] }) => {
-  // Create a Set of priority article IDs for quick lookup
-  const priorityArticleIds = useMemo(() => {
-    return new Set(priorityArticles.map(article => article._id));
-  }, [priorityArticles]);
-
-  // Combine and deduplicate articles - FIXED VERSION
-  const getCombinedArticles = (category) => {
-    const categoryData = data?.find(item => item.category === category) || {};
+const AllSectionArticle = ({ data = [], priorityArticles = [] }) => {
+  
+  // 1. Data को Sequence के हिसाब से sort करना
+  const sortedCategories = useMemo(() => {
+    if (!data || !Array.isArray(data)) return [];
     
-    // Get all articles from this category
+    return [...data].sort((a, b) => {
+      const seqA = a.sequence !== undefined ? a.sequence : Number.MAX_VALUE;
+      const seqB = b.sequence !== undefined ? b.sequence : Number.MAX_VALUE;
+      return seqA - seqB;
+    });
+  }, [data]);
+
+  // 2. Articles को combine करना
+  const getCombinedArticles = (element) => {
+    const rawImgData = element.imgData || element.data || element.articles || [];
+    const rawVidData = element.vidData || [];
+
     const categoryArticles = [
-      ...(categoryData.imgData || []),
-      ...(categoryData.vidData || [])
+      ...rawImgData.map(item => ({ ...item, type: item.type || 'img' })),
+      ...rawVidData.map(item => ({ ...item, type: 'vid' }))
     ];
 
-    // Get priority articles for this category
     const categoryPriorityArticles = priorityArticles.filter(
-      article => article.topic === category
+      article => article.topic === element.category || article.category === element.category
     );
 
-    // Combine and remove duplicates based on _id
     const allArticlesMap = new Map();
     
-    // First add priority articles
     categoryPriorityArticles.forEach(article => {
-      allArticlesMap.set(article._id, article);
+      if (article && article._id) allArticlesMap.set(article._id, article);
     });
     
-    // Then add regular articles (only if not already added as priority)
     categoryArticles.forEach(article => {
-      if (!allArticlesMap.has(article._id)) {
+      if (article && article._id && !allArticlesMap.has(article._id)) {
         allArticlesMap.set(article._id, article);
       }
     });
@@ -49,261 +48,104 @@ const AllSectionArticle = ({ data, priorityArticles = [] }) => {
     return Array.from(allArticlesMap.values());
   };
 
+  if (!sortedCategories.length) {
+    return <div className="w-full text-center py-4 text-gray-500">डेटा लोड हो रहा है...</div>;
+  }
+
   return (
-    <>
-      {data?.map((element) => {
-        const combinedArticles = getCombinedArticles(element.category);
-        
+    <div className="flex flex-col gap-8 md:gap-12 w-full px-2 sm:px-4">
+      {sortedCategories.map((element) => {
+        const categoryName = element.category || element.text;
+        if (!categoryName) return null;
+
+        const combinedArticles = getCombinedArticles(element);
+        if (combinedArticles.length === 0) return null;
+
         return (
           <SingleArticle
-            key={element.category}
-            category={element.category}
+            key={categoryName}
+            category={categoryName}
             combinedArticles={combinedArticles}
           />
         );
       })}
-    </>
+    </div>
   );
 };
 
 const SingleArticle = ({ category, combinedArticles = [] }) => {
   const router = useRouter();
-  const navigation = router.push;
 
-  // Split articles by type
-  const imgArticles = combinedArticles.filter(article => article.type === 'img');
-  const vidArticles = combinedArticles.filter(article => article.type === 'vid');
+  const imgArticles = combinedArticles.filter(article => article.type === 'img' || !article.type);
 
-  // ✅ FIXED: Dynamic distribution based on actual article count
-  const getDistributedArticles = (articles) => {
-    const total = articles.length;
-    
-    if (total === 7) {
-      return {
-        left: articles.slice(0, 2),      // 2 articles
-        middle: articles.slice(2, 5),    // 3 articles  
-        right: articles.slice(5, 7)      // 2 articles
-      };
-    } else if (total === 6) {
-      return {
-        left: articles.slice(0, 2),      // 2 articles
-        middle: articles.slice(2, 4),    // 2 articles  
-        right: articles.slice(4, 6)      // 2 articles
-      };
-    } else if (total > 7) {
-      return {
-        left: articles.slice(0, 2),      // 2 articles
-        middle: articles.slice(2, 5),    // 3 articles  
-        right: articles.slice(5, 7)      // 2 articles (only show 7 total)
-      };
-    } else {
-      // For less than 6 articles, put all in left column
-      return {
-        left: articles,
-        middle: [],
-        right: []
-      };
-    }
+  // 7 आर्टिकल्स का परफेक्ट डिस्ट्रीब्यूशन
+  const featuredArticle = imgArticles[0]; // 1 मुख्य बड़ी खबर
+  const subArticles = imgArticles.slice(1, 7); // बाकी की 6 खबरें
+
+  const formatTitleForSlug = (element) => {
+    if (element?.slug) return element.slug;
+    return element?.title?.replace(/[%.?]/g, "").split(" ").join("-") || "news";
   };
 
-  const { left: leftArticles, middle: middleArticles, right: rightArticles } = 
-    getDistributedArticles(imgArticles);
-
   return (
-    <div className="w-full">
-      {/* Mobile view */}
-      <div className="main-page-technology-container mob-cat-section container2 container3 border border-collapse sm:m-2 m-1 sm:border-gray-700 border-gray-500">
-        <div className="main-left-side-top sm:hidden sm:mb-0 mb-4">
-          <div className="flex w-full pr-4 justify-between items-center">
-            <Link className="w-[40%]" href={`/itempage?item=${category}`}>{category}</Link>
-            <span className="bg-red-600 h-0.5 w-[60%]"> </span>
-          </div>
-        </div>
-
-        {/* Mobile sliders category */}
-        <div className="main-page-technology-area mobile-page-category">
-          <div className="all-technology-cards" style={{ width: "100%" }}>
-            {/* Image Articles - Show all in mobile */}
-            {imgArticles.length > 0 && (
-              <div className="main-page-technology-first-column">
-                <div className="slide-container">
-                  <Slide indicators={true}>
-                    {imgArticles.map((element) => {
-                      let title = element?.title?.replace(/[%.?]/g, "").split(" ").join("-");
-                      if (element?.slug) title = element.slug;
-
-                      return (
-                        <Link
-                          key={element?._id}
-                          href={`/details/${title}?id=${element?._id}`}
-                          style={{ marginTop: "10px" }}
-                          className="cat-list"
-                        >
-                          <ImageCard
-                            id={element?._id}
-                            img={element?.image}
-                            dis={false}
-                            text={element?.title}
-                            style={{
-                              fontSize: "15px",
-                              fontWeight: 400,
-                              borderRadius: 0,
-                            }}
-                            height="200px"
-                            width="100%"
-                          />
-                        </Link>
-                      );
-                    })}
-                  </Slide>
-                </div>
-              </div>
-            )}
-
-            {/* Video Articles */}
-            {vidArticles.length > 0 && (
-              <div className="main-page-technology-third-column">
-                {vidArticles.slice(0, 2).map((element) => (
-                  <VideoCard
-                    fromVideoGallery={false}
-                    key={element?._id}
-                    data={element}
-                    color="black"
-                    width="100%"
-                  />
-                ))}
-                <div className="more-text">
-                  {"और भी"}{" "}
-                  <FaGreaterThan style={{ marginLeft: "6px" }} />
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+    <div className="w-full bg-white mb-6 md:mb-8">
+      
+      {/* 🏷️ Premium Category Header */}
+      <div className="border-b border-gray-200 pb-2 mb-4 md:mb-6 flex items-center justify-between">
+        <Link href={`/itempage?item=${category}`}>
+          <h2 className="font-extrabold text-[20px] md:text-[22px] text-gray-900 flex items-center gap-2.5 cursor-pointer hover:text-[#D90429] transition-colors tracking-tight">
+            <span className="h-5 md:h-6 w-[4px] bg-[#D90429] rounded-full inline-block"></span>
+            {category}
+          </h2>
+        </Link>
       </div>
 
-      {/* Laptop view */}
-      <div className="lap-cat-section container2 container3 border border-collapse sm:m-2 m-1 sm:border-gray-700 border-gray-500">
-        <div className="main-page-technology-heading border-b sm:border-0 sm:mb-0 border-gray-500 mb-4">
-          <Link href={`/itempage?item=${category}`}>{category}</Link>
+      {/* 💻 Responsive Layout: Mobile standard stack -> Desktop horizontal duo */}
+      <div className="flex flex-col lg:flex-row gap-5 lg:gap-8 w-full items-start">
+        
+        {/* 1️⃣ LEFT SIDE (40%): Big Hero Card (Mobile standard height to prevent empty space) */}
+        {featuredArticle && (
+          <div className="w-full lg:w-[40%] h-[220px] sm:h-[280px] lg:h-[380px] rounded-sm overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 shrink-0">
+            <ImageCard
+              id={featuredArticle?._id}
+              slug={formatTitleForSlug(featuredArticle)}
+              img={featuredArticle?.image}
+              text={featuredArticle?.title}
+              dis={true}
+              height="100%"
+              width="100%"
+              border="rounded-sm"
+            />
+          </div>
+        )}
+
+        {/* 2️⃣ RIGHT SIDE (60%): Grid List (Mobile 1 Column -> Desktop 2 Columns) */}
+        <div className="w-full lg:w-[60%] grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 sm:gap-y-4">
+          {subArticles.map((element) => (
+            <div
+              key={element?._id}
+              onClick={() => router.push(`/details/${formatTitleForSlug(element)}?id=${element?._id}`)}
+              className="flex w-full gap-3 py-2 cursor-pointer items-start group border-b border-gray-100/70 hover:bg-slate-50/40 p-1 rounded transition-all duration-150"
+            >
+              {/* Thumbnail */}
+              <div className="w-[95px] sm:w-[110px] h-[65px] sm:h-[68px] shrink-0 overflow-hidden rounded-sm bg-gray-50 shadow-sm">
+                <img 
+                  src={element?.image} 
+                  alt="" 
+                  className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-200" 
+                  loading="lazy" 
+                />
+              </div>
+              {/* Headline Text */}
+              <div className="flex flex-col flex-1 min-w-0">
+                <span className="text-[13.5px] sm:text-[14px] font-bold text-gray-900 line-clamp-2 sm:line-clamp-3 leading-snug group-hover:text-[#D90429] transition-colors break-words">
+                  {element?.title}
+                </span>
+              </div>
+            </div>
+          ))}
         </div>
 
-        <div className="flex justify-between flex-row gap-4 w-full">
-          {/* Left Portion */}
-          <div className="flex-1 flex flex-col items-center">
-            {leftArticles.length > 0 && (
-              <div className="flex flex-col gap-5 w-full">
-                {leftArticles.map((element) => {
-                  let title = element?.title?.replace(/[%.?]/g, "").split(" ").join("-");
-                  if (element?.slug) title = element.slug;
-
-                  return (
-                    <Link
-                      key={element?._id}
-                      className="cat-list w-full"
-                      href={`/details/${title}?id=${element?._id}`}
-                    >
-                      <ImageCard
-                        className="w-full"
-                        style={{
-                          fontSize: "15px",
-                          fontWeight: 400,
-                          height: "auto",
-                          borderRadius: 0,
-                        }}
-                        height="250px"
-                        img={element?.image}
-                        dis={false}
-                        text={element?.title}
-                      />
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* Center Portion */}
-          <div className="flex-1 lg:flex flex-col hidden items-center">
-            {middleArticles.length > 0 && (
-              <div className="w-full hidden lg:flex flex-col gap-4">
-                {middleArticles.map((element) => {
-                  let title = element?.title?.replace(/[%.?]/g, "").split(" ").join("-");
-                  if (element?.slug) title = element.slug;
-
-                  return (
-                    <MiddleItemsCard
-                      data={element}
-                      key={element?._id}
-                      OnPress={() => navigation(`/details/${title}?id=${element?._id}`)}
-                      wid="w-[400px]"
-                      image={element?.image}
-                      text={element?.title}
-                    />
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* Right Portion */}
-          <div className="flex-1 lg:flex hidden flex-col items-center">
-            {rightArticles.length > 0 && (
-              <div className="flex flex-col gap-2 w-full">
-                {rightArticles.map((element) => {
-                  let title = element?.title?.replace(/[%.?]/g, "").split(" ").join("-");
-                  if (element?.slug) title = element.slug;
-
-                  return (
-                    <Link
-                      key={element?._id}
-                      className="cat-list hover:bg-gray-200 p-1 rounded w-full"
-                      href={`/details/${title}?id=${element?._id}`}
-                    >
-                      <div className="overflow-hidden w-full">
-                        <div className="h-[200px]">
-                          <img
-                            className="w-full h-full object-cover"
-                            src={element?.image}
-                            alt={element?.title}
-                          />
-                        </div>
-                        <div className="text-gray-950 py-1 h-14 text-lg px-2 w-full overflow-hidden">
-                          {element?.title}
-                        </div>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// MiddleItemsCard component
-const MiddleItemsCard = ({ text, image, OnPress, id, wid, date }) => {
-  return (
-    <div
-      onClick={OnPress}
-      className="stories-card mobileMainPageStroyCard my-0 flex w-full h-full"
-      id={id}
-      style={{ cursor: "pointer" }}
-    >
-      <div className={`${wid}`}>
-        <img
-          src={image}
-          alt=""
-          className="w-full h-[162px] object-fill"
-        />
-      </div>
-      <div className="flex flex-col w-[70%] h-full">
-        <span className="stories-card-text-4-line h-full w-full">
-          {text}
-        </span>
       </div>
     </div>
   );

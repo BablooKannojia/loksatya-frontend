@@ -23,8 +23,6 @@ export function StoryProvider({ children }) {
       const res = await fetch(`${API_URL}/story`);
       const json = await res.json();
       
-      console.log(`Story API Raw Response:`, json);
-
       if (json) {
         setState({
           storyData: json, // सीधा ऐरे स्टोर कर रहे हैं

@@ -4,7 +4,6 @@ import { useState } from "react";
 import "../src/i18n/config.js";
 import { LanguageSelect, Loading, OnEdit } from "../src/Context";
 import { AdProvider } from "../src/Context/TopAdContext";
-import { CategoriesProvider } from "../src/Context/CategoriesContext";
 import { CommonProvider } from "../src/Context/CommonContext.jsx";
 import { HomeProvider } from "@/src/Context/HomeContext.jsx";
 import { StoryProvider } from "@/src/Context/StoryContext.jsx";
@@ -20,7 +19,6 @@ export default function Providers({ children }) {
     <CommonProvider>
       <HomeProvider>
         <StoryProvider>
-          <CategoriesProvider>
             <AdProvider>
               <Loading.Provider value={{ loading, setLoading, effect, setEffect }}>
                 <LanguageSelect.Provider value={{ lang, setLang }}>
@@ -30,7 +28,6 @@ export default function Providers({ children }) {
                 </LanguageSelect.Provider>
               </Loading.Provider>
             </AdProvider>
-          </CategoriesProvider>
         </StoryProvider>
       </HomeProvider>
     </CommonProvider>

@@ -22,7 +22,6 @@ export function HomeProvider({ children }) {
       setState((prev) => ({ ...prev, loading: true, error: null }));
       const res = await fetch(`${API_URL}/homepage`);
       const json = await res.json();
-      console.log(`home res`, json)
 
       if (json) {
         // क्योंकि आपकी API में सीधा ऑब्जेक्ट या json आ रहा है

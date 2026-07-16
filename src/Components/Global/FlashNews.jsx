@@ -2,14 +2,14 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { useHomeData } from "../../Context/HomeContext"; // 👈 कॉन्टेक्स्ट हुक लाएं
+import { useHomeData } from "../../Context/HomeContext";
 
 export default function FlashNews() {
-  const { homeData, loading } = useHomeData(); // 👈 होम डेटा निकाला
+  const { homeData, loading } = useHomeData();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
 
-  const data = homeData?.flashNews || []; // 👈 पोस्टमैन वाली flashNews एरे
+  const data = homeData?.flashNews || [];
 
   useEffect(() => {
     if (data.length === 0) return;
@@ -24,7 +24,7 @@ export default function FlashNews() {
   const currentNews = data[currentIndex];
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-5 my-3 pt-4 font-devanagari">
+    <div className="w-full max-w-7xl mx-auto lg:px-4 px-2 my-3 pt-4 font-devanagari">
       <div className="relative flex items-center justify-between bg-[#393939] text-white rounded-full py-2 px-6 shadow-md">
         <div className="flex items-center flex-shrink-0 select-none">
           <span className="font-extrabold italic text-[14px] uppercase animate-pulse">BREAKING NEWS</span>
