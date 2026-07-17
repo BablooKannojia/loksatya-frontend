@@ -68,13 +68,13 @@ export default function FlashNews() {
         </div>
         
         {/* Close Button */}
-        <button 
+        {/* <button 
           onClick={() => setIsVisible(false)} 
           className="text-white/60 hover:text-white transition-colors p-1 text-[13px] shrink-0"
           aria-label="Close Alert"
         >
           ✕
-        </button>
+        </button> */}
       </div>
     </div>
   );
