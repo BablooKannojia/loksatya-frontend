@@ -14,6 +14,7 @@ import FlashNews from "../../Components/Global/FlashNews"
 import PhotoGallery from "../../Components/Global/PhotoGallery"
 import VisualStories from "../../Components/Global/VisualStories"
 import HomeHeroSection from "../../Components/Global/BreakingLatest"
+import HeroSection from "../../Components/Global/HeroSection"
 import AllSectionArticle from "../../components/MainPage/SectionArticle";
 import { useHomeData } from "@/src/Context/HomeContext";
 import { useCommonData } from "../../Context/CommonContext";
@@ -39,6 +40,7 @@ const MainPage = () => {
   const [selectedOption, setSelectedOption] = useState(null);
   const breakingNewsRef = useRef(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [homeSlider, setHomeSlider] = useState(null);
   const [fixedArticles, setFixedArticles] = useState({ first: null, second: null });
   const [fixedArticlesmobile, setFixedArticlesMobile] = useState([]);
   const [isLoading, setIsLoading] = useState({
@@ -92,9 +94,10 @@ const MainPage = () => {
         axios.get(
           `${API_URL}/article?pagenation=true&limit=12&type=img&newsType=breakingNews&status=online&priority=true`
         ),
+        axios.get(`${API_URL}/article/slider`),
       ];
 
-      const [fixed1Res, fixed2Res, sliderRes, breakingRes] = await Promise.all(
+      const [fixed1Res, fixed2Res, sliderRes, breakingRes, articles] = await Promise.all(
         criticalRequests
       );
 
@@ -106,6 +109,11 @@ const MainPage = () => {
 
       setSliderArticles(sliderRes.data.filter((article) => article.status === "online"));
       setbreakingNews(breakingRes.data);
+
+      if (articles?.data?.success && articles?.data?.data) {
+        setHomeSlider(articles.data.data);
+      }
+      console.log(`herosection`, articles.data.data)
 
       updateLoadingState("critical", false);
       updateLoadingState("slider", false);
@@ -311,8 +319,8 @@ const MainPage = () => {
 
         <FlashNews />
 
-        <div className="hidden lg:flex w-full gap-6">
-          <div className="w-[70%]">
+        <div className="hidden lg:flex w-full">
+          {/* <div className="w-[70%]">
             <div className="flex w-full">
               <div className="w-1/2">
                 {fixedArticles.first ? (
@@ -419,6 +427,11 @@ const MainPage = () => {
                 </div>
               </div>
             </div>
+
+
+          </div> */}
+          <div className="max-w-9xl lg:px-4 px-2">
+            <HeroSection sliderData={homeSlider} />
           </div>
 
           <TopStories />
