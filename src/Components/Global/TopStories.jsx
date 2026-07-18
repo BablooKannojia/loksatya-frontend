@@ -15,7 +15,7 @@ export default function TopStories() {
   // 1️⃣ 0 CLS Safeguard: लोडिंग के दौरान 6 पूरे कार्ड्स का स्केलेटन दिखाएं ताकि उतनी ही जगह रिजर्व रहे
   if (loading) {
     return (
-      <div className="w-full lg:w-[30%] p-4 bg-white rounded-lg shadow-sm font-devanagari min-h-[620px]">
+      <div className="w-full p-4 bg-white rounded-lg shadow-sm font-devanagari min-h-[620px]">
         <div className="animate-pulse space-y-4">
           <div className="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
           <div className="space-y-3">
@@ -42,7 +42,7 @@ export default function TopStories() {
     .slice(0, 6);
 
   return (
-    <div id="TopStories" className="w-full lg:w-[30%] font-devanagari bg-white p-4 rounded-lg shadow-sm flex flex-col justify-between min-h-[620px]">
+    <div id="TopStories" className="w-full font-devanagari bg-white p-4 rounded-lg shadow-sm flex flex-col justify-between min-h-[620px]">
       
       <div>
         {/* हेडर सेक्शन */}

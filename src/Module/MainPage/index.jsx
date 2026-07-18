@@ -319,123 +319,20 @@ const MainPage = () => {
 
         <FlashNews />
 
-        <div className="hidden lg:flex w-full">
-          {/* <div className="w-[70%]">
-            <div className="flex w-full">
-              <div className="w-1/2">
-                {fixedArticles.first ? (
-                  <ImageCard
-                    height="100%"
-                    width="100%"
-                    img={fixedArticles.first.image}
-                    text={fixedArticles.first.title}
-                    title={fixedArticles.first.title.replace(/[/\%.?]/g, "").split(" ").join("-")}
-                    slug={fixedArticles.first.slug}
-                    id={fixedArticles.first._id}
-                  />
-                ) : (
-                  <ImageCard
-                    height="100%"
-                    width="100%"
-                    img={breakingNews?.[0]?.image}
-                    text={breakingNews?.[0]?.title}
-                    title={breakingNews?.[0]?.title?.replace(/[/\%.?]/g, "").split(" ").join("-")}
-                    slug={breakingNews?.[0]?.slug}
-                    id={breakingNews?.[0]?._id}
-                  />
-                )}
-              </div>
-              <div className="w-1/2 ml-[10px]">
-                {fixedArticles.second ? (
-                  <ImageCard
-                    height="100%"
-                    width="100%"
-                    img={fixedArticles.second.image}
-                    text={fixedArticles.second.title}
-                    title={fixedArticles.second.title.replace(/[/\%.?]/g, "").split(" ").join("-")}
-                    slug={fixedArticles.second.slug}
-                    id={fixedArticles.second._id}
-                  />
-                ) : (
-                  <ImageCard
-                    img={breakingNews?.[1]?.image}
-                    text={breakingNews?.[1]?.title}
-                    title={breakingNews?.[1]?.title?.replace(/[/\%.?]/g, "").split(" ").join("-")}
-                    slug={breakingNews?.[1]?.slug}
-                    id={breakingNews?.[1]?._id}
-                    height="100%"
-                    width="100%"
-                  />
-                )}
-              </div>
-            </div>
+        {/* 🚀 पैरेंट कंटेनर: यहाँ flex-1 और shrink-0 का सारा खेल है */}
+<div className="hidden lg:flex w-full items-start gap-6 px-4 max-w-[1400px] mx-auto mt-3">
+  
+  {/* 1. हीरो सेक्शन: इसे बोल दिया कि भाई तू बची हुई 70% पूरी जगह ले ले */}
+  <div className="flex-1">
+    <HeroSection sliderData={homeSlider} />
+  </div>
 
-            <div className="flex justify-between mt-[3%] mb-[10px] gap-[10px]">
-              <div className="w-1/2">
-                {sliderArticles?.filter((_, i) => i % 2 === 0)[Math.floor(sliderItem / 2)] && (
-                  <ImageCard
-                    img={sliderArticles.filter((_, i) => i % 2 === 0)[Math.floor(sliderItem / 2)]?.image}
-                    text={sliderArticles.filter((_, i) => i % 2 === 0)[Math.floor(sliderItem / 2)]?.title}
-                    slug={sliderArticles.filter((_, i) => i % 2 === 0)[Math.floor(sliderItem / 2)]?.slug}
-                    title={sliderArticles.filter((_, i) => i % 2 === 0)[Math.floor(sliderItem / 2)]?.title}
-                    id={sliderArticles.filter((_, i) => i % 2 === 0)[Math.floor(sliderItem / 2)]?._id}
-                    height="50vh"
-                    width="100%"
-                  />
-                )}
-                <div className="flex justify-center gap-2 mt-2">
-                  {sliderArticles
-                    .map((_, i) => i)
-                    .filter((i) => i % 2 === 0)
-                    .map((item) => (
-                      <div
-                        key={item}
-                        className={`w-2 h-2 rounded-full cursor-pointer ${
-                          sliderItem === item ? "bg-red-600" : "bg-gray-300"
-                        }`}
-                        onClick={() => setSliderItem(item)}
-                      ></div>
-                    ))}
-                </div>
-              </div>
+  {/* 2. टॉप स्टोरीज: shrink-0 लगाने से यह कभी भी 30% से 1 पिक्सेल भी छोटा नहीं होगा */}
+  <div className="w-[30%] shrink-0">
+    <TopStories />
+  </div>
 
-              <div className="w-1/2">
-                {sliderArticles?.filter((_, i) => i % 2 !== 0)[Math.floor(sliderItem2 / 2)] && (
-                  <ImageCard
-                    img={sliderArticles.filter((_, i) => i % 2 !== 0)[Math.floor(sliderItem2 / 2)]?.image}
-                    text={sliderArticles.filter((_, i) => i % 2 !== 0)[Math.floor(sliderItem2 / 2)]?.title}
-                    slug={sliderArticles.filter((_, i) => i % 2 !== 0)[Math.floor(sliderItem2 / 2)]?.slug}
-                    title={sliderArticles.filter((_, i) => i % 2 !== 0)[Math.floor(sliderItem2 / 2)]?.title}
-                    id={sliderArticles.filter((_, i) => i % 2 !== 0)[Math.floor(sliderItem2 / 2)]?._id}
-                    height="50vh"
-                    width="100%"
-                  />
-                )}
-                <div className="flex justify-center gap-2 mt-2">
-                  {sliderArticles
-                    .map((_, i) => i)
-                    .filter((i) => i % 2 !== 0)
-                    .map((item) => (
-                      <div
-                        key={item}
-                        className={`w-2 h-2 rounded-full cursor-pointer ${
-                          sliderItem2 === item ? "bg-red-600" : "bg-gray-300"
-                        }`}
-                        onClick={() => setSliderItem2(item)}
-                      ></div>
-                    ))}
-                </div>
-              </div>
-            </div>
-
-
-          </div> */}
-          <div className="max-w-9xl lg:px-4 px-2">
-            <HeroSection sliderData={homeSlider} />
-          </div>
-
-          <TopStories />
-        </div>
+</div>
 
         <div className="flex flex-col gap-8 md:gap-12 w-full px-2 sm:px-4">
           <HomeHeroSection
