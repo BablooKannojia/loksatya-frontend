@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import {
   IoHome,
   IoNewspaper,
@@ -11,8 +12,99 @@ import {
   IoImages,
   IoAlbums,
   IoSearchSharp,
+  IoCloseSharp,
 } from "react-icons/io5";
 import { useCommonData } from "../../Context/CommonContext";
+
+/* ---------- search box shared by desktop + mobile ---------- */
+function HeaderSearch({ variant = "icon", onAfterSubmit }) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState("");
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    if (open) inputRef.current?.focus();
+  }, [open]);
+
+  const submit = (e) => {
+    e?.preventDefault();
+    const trimmed = value.trim();
+    if (!trimmed) return;
+    router.push(`/search?q=${encodeURIComponent(trimmed)}`);
+    setValue("");
+    setOpen(false);
+    onAfterSubmit?.();
+  };
+
+  if (variant === "icon") {
+    return (
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          aria-label="खोजें"
+          className="flex h-9 w-9 items-center justify-center rounded-full text-white transition-colors hover:bg-white hover:text-brand"
+        >
+          <IoSearchSharp className="text-[18px]" />
+        </button>
+
+        {open && (
+          <div className="fixed inset-0 z-[80] bg-black/40 lg:absolute lg:inset-auto lg:right-0 lg:top-full lg:mt-2 lg:bg-transparent">
+            <form
+              onSubmit={submit}
+              className="mx-auto mt-20 flex w-[92%] max-w-md items-center gap-2 rounded-lg bg-white p-2 shadow-2xl lg:mx-0 lg:mt-0 lg:w-[320px]"
+            >
+              <input
+                ref={inputRef}
+                type="text"
+                value={value}
+                onChange={(e) => setValue(e.target.value)}
+                placeholder="खबर खोजें..."
+                className="flex-1 rounded-md border border-gray-200 px-3 py-2 text-sm text-ink outline-none focus:border-brand"
+              />
+              <button
+                type="submit"
+                aria-label="खोजें"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-brand text-white hover:bg-brand-dark"
+              >
+                <IoSearchSharp className="text-[16px]" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                aria-label="बंद करें"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-ink-soft hover:bg-gray-100"
+              >
+                <IoCloseSharp className="text-[18px]" />
+              </button>
+            </form>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // inline variant (used inside mobile drawer)
+  return (
+    <form onSubmit={submit} className="flex items-center gap-2 px-4 py-3">
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        placeholder="खबर खोजें..."
+        className="flex-1 rounded-md border border-gray-300 px-3 py-2.5 text-sm text-ink outline-none focus:border-brand"
+      />
+      <button
+        type="submit"
+        aria-label="खोजें"
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand text-white hover:bg-brand-dark"
+      >
+        <IoSearchSharp className="text-[18px]" />
+      </button>
+    </form>
+  );
+}
 
 function categoryHref(text = "") {
   return `/category/${encodeURIComponent(text.trim())}`;
@@ -296,6 +388,10 @@ export default function Header() {
               menu.length > 0 && <HeaderNav menu={menu} />
             )}
           </div>
+
+          <div className="flex-shrink-0 relative z-50">
+            <HeaderSearch variant="icon" />
+          </div>
         </div>
 
         {/* Mobile Header Layout (Exactly as requested image) */}
@@ -376,13 +472,9 @@ export default function Header() {
             </Link>
 
             {/* सर्च */}
-            <Link
-              href="/search"
-              aria-label="खोजें"
-              className="flex flex-col items-center justify-center transition-transform active:scale-95 hover:opacity-90 ml-0.5"
-            >
-              <IoSearchSharp className="text-[21px]" />
-            </Link>
+            <div className="ml-0.5">
+              <HeaderSearch variant="icon" />
+            </div>
           </div>
         </div>
       </header>
@@ -417,6 +509,10 @@ export default function Header() {
         </div>
 
         <nav aria-label="मोबाइल मेन्यू" className="flex-1 overflow-y-auto pb-6 font-devanagari">
+          <div className="border-b border-gray-100">
+            <HeaderSearch variant="inline" onAfterSubmit={() => setDrawerOpen(false)} />
+          </div>
+
           {loading && <p className="p-4 text-sm text-ink-soft">लोड हो रहा है...</p>}
 
           <ul>
