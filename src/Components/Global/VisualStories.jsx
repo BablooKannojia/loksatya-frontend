@@ -117,7 +117,7 @@ export default function VisualStories() {
 
           return (
             <a
-              href={`/stories?id=${story._id}`}
+              href={`/visual-stories/${story._id}`}
               target="_blank"
               key={story._id}
               rel="noreferrer"

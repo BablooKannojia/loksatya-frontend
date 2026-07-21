@@ -8,6 +8,7 @@ import { API_URL } from "../../../src/API";
 import TopStories from "../../../src/Components/Global/TopStories";
 import SidebarLatestNews from "../../../src/Components/DetailsPage/SidebarLatestNews";
 import RelatedNewsSection from "../../../src/Components/DetailsPage/RelatedNewsSection";
+import Comments from "../../../src/Components/DetailsPage/Comments";
 
 // ⚡ 1. Backend API Fetching Function
 async function getArticleDetails(id, slug) {
@@ -190,6 +191,9 @@ async function ArticleContent({ id, slug }) {
 
       {/* 📍 2. आर्टिकल के अंत में संबंधित ख़बरें (Related News) यहाँ जोड़ा गया है */}
       <RelatedNewsSection currentNewId={id} topic={article?.topic} />
+
+      {/* 💬 3. आर्टिकल के सबसे नीचे टिप्पणियाँ (Comments) */}
+      <Comments postId={id} />
     </>
   );
 }
