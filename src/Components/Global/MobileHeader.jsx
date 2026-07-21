@@ -268,7 +268,7 @@ const MobileHeader = () => {
               </Link>
             </li>
             <li>
-              <Link href="/photos">
+              <Link href="/stories">
                 <TfiGallery size={18} aria-label="Story" />
               </Link>
             </li>

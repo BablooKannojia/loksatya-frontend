@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useStoryData } from "../../Context/StoryContext";
 import OptimizedImg from "../OptimizedImage";
 import { IoChevronBack, IoChevronForward } from "react-icons/io5";
+import { FaGreaterThan } from "react-icons/fa6";
 
 export default function VisualStories() {
   const router = useRouter();
@@ -14,7 +15,7 @@ export default function VisualStories() {
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
 
-  const stories = Array.isArray(storyData) ? storyData : [];
+  const stories = Array.isArray(storyData.data) ? storyData.data : [];
 
   const checkScrollLimits = () => {
     if (scrollRef.current) {
@@ -71,11 +72,17 @@ export default function VisualStories() {
       {/* सेक्शन हेडर */}
       <div className="border-b-2 border-[#D90429] pb-2 mb-5 flex items-center justify-between h-[38px]">
         <h2 
-          onClick={() => router.push("/story")}
-          className="font-bold text-[20px] text-gray-900 flex items-center gap-2 cursor-pointer hover:text-[#D90429] transition-colors"
+          className="font-bold text-[20px] text-gray-900 flex items-center gap-2"
         >
           <span className="h-5 w-1.5 bg-[#D90429] rounded-full"></span>
           दृश्य कहानियाँ
+        </h2>
+        <h2
+          className="flex items-center text-xs font-bold text-[#D90429] hover:text-[#D90429] cursor-pointer pt-2 select-none h-[24px]"
+          onClick={() => router.push(`/story`)}
+        >
+          <span>{"और भी"}</span>
+          <FaGreaterThan className="ml-1 text-[8px]" />
         </h2>
       </div>
 

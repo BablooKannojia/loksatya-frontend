@@ -20,7 +20,7 @@ export function StoryProvider({ children }) {
   const fetchStoryData = useCallback(async () => {
     try {
       setState((prev) => ({ ...prev, loading: true, error: null }));
-      const res = await fetch(`${API_URL}/story`);
+      const res = await fetch(`${API_URL}/story?limit=12`);
       const json = await res.json();
       
       if (json) {

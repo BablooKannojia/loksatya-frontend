@@ -44,7 +44,7 @@ const MenuBelowSlider = () => {
           <Link href="/story">दृश्य कहानियाँ</Link>
         </li>
         <li>
-          <Link href="/photos">फोटो गैलरी</Link>
+          <Link href="/photo-gallery">फोटो गैलरी</Link>
         </li>
       </ul>
     </div>

@@ -7,7 +7,6 @@ import { useHomeData } from "../../Context/HomeContext";
 export default function FlashNews() {
   const { homeData, loading } = useHomeData();
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isVisible, setIsVisible] = useState(true);
   const [fade, setFade] = useState(true);
 
   const data = homeData?.flashNews || [];
@@ -29,8 +28,6 @@ export default function FlashNews() {
     return () => clearInterval(timer);
   }, [data.length]);
 
-  // अगर यूजर ने मैन्युअली बंद कर दिया है, तभी गायब करें
-  if (!isVisible) return null;
 
   // 1️⃣ 0 CLS: लोडिंग स्टेट या जब तक डेटा खाली है, तब तक खाली स्पेस रिजर्व रखें ताकि नीचे का लेआउट न हिले
   if (loading || data.length === 0) {

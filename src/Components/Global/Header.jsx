@@ -359,7 +359,7 @@ export default function Header() {
 
             {/* फोटो */}
             <Link
-              href="/photos"
+              href="/photo-gallery"
               aria-label="फोटो"
               className="flex flex-col items-center justify-center transition-transform active:scale-95 hover:opacity-90"
             >

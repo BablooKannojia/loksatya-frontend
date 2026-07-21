@@ -5,10 +5,14 @@ import Link from "next/link";
 import { useHomeData } from "../../Context/HomeContext";
 import OptimizedImg from "../OptimizedImage";
 import { IoChevronBack, IoChevronForward, IoCameraSharp } from "react-icons/io5";
+import { FaGreaterThan } from "react-icons/fa6";
+import { useRouter } from "next/navigation";
+
 
 export default function PhotoGallery() {
   const { homeData, loading } = useHomeData();
   const scrollRef = useRef(null);
+  const router = useRouter();
   
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
@@ -76,6 +80,14 @@ export default function PhotoGallery() {
           <span className="h-5 w-1.5 bg-[#D90429] rounded-full"></span>
           फ़ोटो गैलरी
         </h2>
+
+        <h2
+          className="flex items-center text-xs font-bold text-[#D90429] hover:text-[#D90429] cursor-pointer pt-2 select-none h-[24px]"
+          onClick={() => router.push(`/photo-gallery`)}
+        >
+          <span>{"और भी"}</span>
+          <FaGreaterThan className="ml-1 text-[8px]" />
+        </h2>
       </div>
 
       {/* नैविगेशन बटन्स */}
@@ -116,7 +128,7 @@ export default function PhotoGallery() {
               className="shrink-0 w-56 snap-start group bg-white rounded-xl overflow-hidden border border-gray-150 shadow-sm hover:shadow-md transition-all duration-300 h-[245px] box-border"
             >
               {/* इमेज लिंक (Fixed aspect box) */}
-              <Link href={`/photos/${img?._id}`} className="block w-full relative h-36 overflow-hidden bg-gray-100">
+              <Link href={`/photo-gallery/${img?._id}`} className="block w-full relative h-36 overflow-hidden bg-gray-100">
                 <OptimizedImg 
                   src={displayImage} 
                   alt={displayText || img?.title || "Photo"} 
@@ -128,7 +140,7 @@ export default function PhotoGallery() {
               {/* फोटो का टाइटल और कैमरा काउंट (Fixed height placeholders) */}
               <div className="p-3 space-y-2">
                 <Link 
-                  href={`/photos/${img?._id}`} 
+                  href={`/photo-gallery/${img?._id}`} 
                   className="block text-[13.5px] font-bold text-gray-800 group-hover:text-[#D90429] transition-colors duration-200 line-clamp-2 h-[38px] leading-snug break-words"
                 >
                   {img?.title}
