@@ -3,6 +3,15 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import {
+  IoHome,
+  IoNewspaper,
+  IoPlayCircle,
+  IoBook,
+  IoImages,
+  IoAlbums,
+  IoSearchSharp,
+} from "react-icons/io5";
 import { useCommonData } from "../../Context/CommonContext";
 
 function categoryHref(text = "") {
@@ -21,7 +30,6 @@ function NavItem({ item }) {
         href={href}
         className="relative inline-flex items-center gap-1.5 whitespace-nowrap rounded-md px-3 py-2 font-devanagari text-[14px] font-semibold text-white transition-colors group-hover:bg-white group-hover:text-brand"
       >
-        {/* अगर होम है तो छोटा सा घर का आइकॉन */}
         {isHome && (
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
             <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
@@ -30,7 +38,6 @@ function NavItem({ item }) {
         
         <span>{item.text}</span>
         
-        {/* 🌟 डेस्कटॉप पैरेंट के लिए डाउन शेवरॉन आइकॉन */}
         {hasSub && (
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3 h-3 transition-transform duration-200 group-hover:rotate-180 opacity-80">
             <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
@@ -127,8 +134,6 @@ function HeaderNav({ menu }) {
 
   return (
     <div ref={containerRef} className="relative w-full min-w-0">
-      
-      {/* मापने वाली हिडन लिस्ट */}
       <ul
         ref={hiddenRef}
         aria-hidden="true"
@@ -151,7 +156,6 @@ function HeaderNav({ menu }) {
         })}
       </ul>
 
-      {/* वास्तविक रेंडर होने वाला मेनू */}
       <nav aria-label="मुख्य मेन्यू" className="w-full">
         <ul className="flex w-full items-center justify-end gap-0.5 whitespace-nowrap">
           {visibleItems.map((item) => (
@@ -173,7 +177,6 @@ function HeaderNav({ menu }) {
                 </svg>
               </button>
 
-              {/* ड्रॉपडाउन मेनू */}
               <div
                 className={`absolute right-0 top-full z-50 min-w-[240px] border-t-[3px] border-brand bg-white shadow-2xl transition-all duration-150 ${
                   moreOpen ? "visible translate-y-0 opacity-100" : "invisible translate-y-1.5 opacity-0"
@@ -212,7 +215,6 @@ function HeaderNav({ menu }) {
                           )}
                         </div>
 
-                        {/* सब-कैटेगरीज़ Accordion */}
                         {hasSub && (
                           <ul className={`overflow-hidden bg-gray-50 transition-all duration-300 ${isSubOpen ? "max-h-[400px] border-t border-gray-100" : "max-h-0"}`}>
                             {item.subcategories.map((sub) => (
@@ -268,48 +270,120 @@ export default function Header() {
         <span className="font-medium">सबसे तेज़, सबसे सटीक खबरें</span>
       </div>
 
-      {/* ===== Header (UI Structure 100% Original As Before) ===== */}
+      {/* ===== Header ===== */}
       <header className="sticky top-0 z-40 bg-brand shadow-md">
-        <div className="mx-auto flex max-w-7xl items-center gap-6 px-5 py-0"> 
-          
-          {/* 🌟 आज़तक जैसा उभरा (Pop-out) हुआ लोगो */}
+        {/* Desktop Header Layout */}
+        <div className="hidden lg:flex mx-auto max-w-7xl items-center gap-6 px-5 py-0">
           <Link
             href="/"
             aria-label="होमपेज"
-            className="flex-shrink-0 relative z-50 rounded-b-lg bg-white px-4 pb-3 pt-2 shadow-[0_4px_12px_rgba(0,0,0,0.15)] transform translate-y-1 transition-transform hover:translate-y-1.5"
+            className="flex-shrink-0 relative z-50 px-4 pb-3 pt-2"
           >
             <Image
               src="/logo.png"
               alt="न्यूज़ लोगो"
-              width={150}
+              width={180}
               height={48}
               priority
-              className="h-[42px] w-auto object-contain"
+              className="h-[48px] w-auto object-contain"
             />
           </Link>
 
-          {/* Nav — Desktop only */}
-          <div className="hidden lg:block lg:flex-1 lg:min-w-0 py-2.5">
+          <div className="flex-1 min-w-0 py-2.5">
             {loading ? (
-              /* CLS Guard: लोडिंग के दौरान सिर्फ इनविजिबल हाइट होल्डर ताकि ओरिजिनल हाइट डिस्टर्ब न हो */
               <div className="h-9 w-full" />
             ) : (
               menu.length > 0 && <HeaderNav menu={menu} />
             )}
           </div>
+        </div>
 
-          {/* Hamburger (Mobile only) */}
-          <button
-            type="button"
-            aria-label="मेन्यू खोलें"
-            aria-expanded={drawerOpen}
-            onClick={() => setDrawerOpen(true)}
-            className="ml-auto flex h-[38px] w-[38px] flex-shrink-0 flex-col justify-center gap-[5px] lg:hidden"
-          >
-            <span className="h-[2.5px] w-full rounded bg-white" />
-            <span className="h-[2.5px] w-full rounded bg-white" />
-            <span className="h-[2.5px] w-full rounded bg-white" />
-          </button>
+        {/* Mobile Header Layout (Exactly as requested image) */}
+        <div className="flex lg:hidden items-center justify-between px-3 py-2 text-white">
+          {/* Left: Drawer Toggle Button & Logo */}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              aria-label="मेन्यू खोलें"
+              aria-expanded={drawerOpen}
+              onClick={() => setDrawerOpen(true)}
+              className="flex h-8 w-8 flex-col justify-center gap-[4px] p-1"
+            >
+              <span className="h-[2.5px] w-full rounded bg-white" />
+              <span className="h-[2.5px] w-full rounded bg-white" />
+              <span className="h-[2.5px] w-full rounded bg-white" />
+            </button>
+
+            <Link href="/" aria-label="होमपेज" className="flex items-center">
+              <Image
+                src="/logo.png"
+                alt="न्यूज़ लोगो"
+                width={250}
+                height={50}
+                priority
+                className="h-[50px] w-auto object-contain" 
+              />
+            </Link>
+          </div>
+
+          {/* Right: Quick Icons Toolbar */}
+          <div className="flex items-center gap-3 sm:gap-4 text-white font-devanagari">
+
+            {/* ई-पेपर (विशेष हाइलाइट) */}
+            <Link
+              href="https://epaper.loksatya.com/"
+              target="blank"
+              className="flex flex-col items-center justify-center transition-transform active:scale-95 hover:opacity-90"
+            >
+              <IoNewspaper className="text-[20px]" />
+              <span className="text-[9.5px] font-bold leading-none mt-0.5 tracking-tight">ई-पेपर</span>
+            </Link>
+
+            {/* वीडियो / लाइव */}
+            <Link
+              href="/videos"
+              aria-label="वीडियो"
+              className="flex flex-col items-center justify-center transition-transform active:scale-95 hover:opacity-90"
+            >
+              <IoPlayCircle className="text-[23px]" />
+            </Link>
+
+            {/* वेब स्टोरीज */}
+            <Link
+              href="/stories"
+              aria-label="वेब स्टोरीज"
+              className="flex flex-col items-center justify-center transition-transform active:scale-95 hover:opacity-90"
+            >
+              <IoBook className="text-[20px]" />
+            </Link>
+
+            {/* फोटो */}
+            <Link
+              href="/photos"
+              aria-label="फोटो"
+              className="flex flex-col items-center justify-center transition-transform active:scale-95 hover:opacity-90"
+            >
+              <IoImages className="text-[20px]" />
+            </Link>
+
+            {/* गैलरी */}
+            <Link
+              href="/gallery"
+              aria-label="गैलरी"
+              className="flex flex-col items-center justify-center transition-transform active:scale-95 hover:opacity-90"
+            >
+              <IoAlbums className="text-[20px]" />
+            </Link>
+
+            {/* सर्च */}
+            <Link
+              href="/search"
+              aria-label="खोजें"
+              className="flex flex-col items-center justify-center transition-transform active:scale-95 hover:opacity-90 ml-0.5"
+            >
+              <IoSearchSharp className="text-[21px]" />
+            </Link>
+          </div>
         </div>
       </header>
 
@@ -375,7 +449,6 @@ export default function Header() {
                         aria-label={`${item.text} की सूची ${isOpen ? "बंद" : "खोलें"}`}
                         className="w-12 flex items-center justify-center text-ink-soft"
                       >
-                        {/* 🌟 मोबाइल पैरेंट के लिए शेवरॉन */}
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className={`w-3.5 h-3.5 transition-transform duration-200 ${isOpen ? "rotate-180 text-brand" : ""}`}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
                         </svg>

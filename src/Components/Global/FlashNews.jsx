@@ -45,36 +45,28 @@ export default function FlashNews() {
   const currentNews = data[currentIndex];
 
   return (
-    <div className="w-full max-w-7xl mx-auto lg:px-4 px-2 my-3 pt-4 font-devanagari box-border">
-      {/* 2️⃣ Fixed height container inside ensures no vertical pixel moves */}
-      <div className="relative flex items-center justify-between bg-[#393939] text-white rounded-full h-[46px] px-6 shadow-md overflow-hidden">
+    <div className="w-full max-w-7xl mx-auto lg:px-4 px-2 my-2 lg:my-3 pt-2 lg:pt-4 font-devanagari box-border">
+      {/* Container with responsive padding */}
+      <div className="relative flex items-center justify-between bg-[#393939] text-white rounded-full h-[44px] lg:h-[46px] px-3.5 sm:px-5 lg:px-6 shadow-md overflow-hidden">
         
-        {/* Label Tag (Fixed Size) */}
+        {/* Label Tag (Compact on Mobile) */}
         <div className="flex items-center flex-shrink-0 select-none">
-          <span className="font-extrabold italic text-[14px] uppercase tracking-wider text-[#D90429] animate-pulse">
+          <span className="font-extrabold italic text-[9px] sm:text-[11px] lg:text-[13px] uppercase tracking-wider text-[#D90429] animate-pulse whitespace-nowrap">
             BREAKING NEWS
           </span>
-          <span className="mx-3 text-white/30">|</span>
+          <span className="mx-2 sm:mx-3 text-white/30 text-[12px] sm:text-[14px]">|</span>
         </div>
         
-        {/* News Content Wrapper with Smooth Fade Transition */}
-        <div className={`flex-1 min-w-0 pr-4 transition-opacity duration-300 ease-in-out ${fade ? "opacity-100" : "opacity-0"}`}>
+        {/* News Content Wrapper (Larger font on mobile) */}
+        <div className={`flex-1 min-w-0 transition-opacity duration-300 ease-in-out ${fade ? "opacity-100" : "opacity-0"}`}>
           <Link 
             href={currentNews?.link || "#"} 
-            className="block text-[14px] font-semibold text-white truncate hover:underline"
+            className="block text-[15px] sm:text-[15px] lg:text-[14px] font-bold sm:font-semibold text-white truncate hover:underline leading-snug"
           >
             {currentNews?.slugName || currentNews?.title}
           </Link>
         </div>
         
-        {/* Close Button */}
-        {/* <button 
-          onClick={() => setIsVisible(false)} 
-          className="text-white/60 hover:text-white transition-colors p-1 text-[13px] shrink-0"
-          aria-label="Close Alert"
-        >
-          ✕
-        </button> */}
       </div>
     </div>
   );

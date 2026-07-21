@@ -28,7 +28,7 @@ const MenuBelowSlider = () => {
         }`}
       >
         <li>
-          <Link href="/itempage2?newsType=topStories">
+          <Link href="/stories">
           {/* Top Stories */}शीर्ष आलेख</Link>
         </li>
         <li>
