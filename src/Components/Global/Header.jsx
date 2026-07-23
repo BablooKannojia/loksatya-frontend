@@ -84,26 +84,6 @@ function HeaderSearch({ variant = "icon", onAfterSubmit }) {
       </div>
     );
   }
-
-  // inline variant (used inside mobile drawer)
-  return (
-    <form onSubmit={submit} className="flex items-center gap-2 px-4 py-3">
-      <input
-        type="text"
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        placeholder="खबर खोजें..."
-        className="flex-1 rounded-md border border-gray-300 px-3 py-2.5 text-sm text-ink outline-none focus:border-brand"
-      />
-      <button
-        type="submit"
-        aria-label="खोजें"
-        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand text-white hover:bg-brand-dark"
-      >
-        <IoSearchSharp className="text-[18px]" />
-      </button>
-    </form>
-  );
 }
 
 function categoryHref(text = "") {
