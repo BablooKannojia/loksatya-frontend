@@ -443,13 +443,13 @@ export default function Header() {
             </Link>
 
             {/* गैलरी */}
-            <Link
-              href="/gallery"
+            {/* <Link
+              href="/stories"
               aria-label="गैलरी"
               className="flex flex-col items-center justify-center transition-transform active:scale-95 hover:opacity-90"
             >
               <IoAlbums className="text-[20px]" />
-            </Link>
+            </Link> */}
 
             {/* सर्च */}
             <div className="ml-0.5">

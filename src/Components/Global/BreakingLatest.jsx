@@ -32,7 +32,7 @@ const HomeHeroSection = ({
             <div className="border-b border-gray-200 pb-2 mb-4 flex items-center justify-between h-[38px]">
               <div 
                 className="text-[18px] font-extrabold text-gray-900 flex items-center gap-2 cursor-pointer hover:text-[#D90429] transition-colors"
-                onClick={() => navigation(`/itempage2?newsType=upload`)}
+                onClick={() => navigation(`/breaking-news`)}
               >
                 <span className="h-5 w-1 bg-[#D90429] rounded-full inline-block"></span>
                 {t("ln") || "ताजा खबरें"}
@@ -67,7 +67,7 @@ const HomeHeroSection = ({
           {/* Read More Button */}
           <div
             className="flex items-center text-xs font-bold text-[#D90429] hover:underline cursor-pointer mt-5 pt-2 self-end select-none h-[24px]"
-            onClick={() => navigation(`/itempage2?newsType=upload`)}
+            onClick={() => navigation(`/breaking-news`)}
           >
             <span>{"और भी देखें"}</span>
             <FaGreaterThan className="ml-1 text-[8px]" />
