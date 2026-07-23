@@ -109,7 +109,7 @@ const MainPage = () => {
 
   return (
     <div className="relative">
-      <div className="w-full">
+      <div className="w-full max-w-7xl mx-auto sm:px-4 space-y-4 md:space-y-8">
 
         {/* 💻 डेस्कटॉप व्यू */}
         <FlashNews />
