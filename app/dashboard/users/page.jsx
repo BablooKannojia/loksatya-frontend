@@ -1,9 +1,16 @@
-import React from 'react'
+import UserList from "./UserList";
 
-function page() {
-  return (
-    <div>users</div>
-  )
-}
+export const metadata = {
+  title: "User List | Admin Dashboard",
+  description: "User List.",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
-export default page
+const Page = () => {
+  return <UserList />
+};
+
+export default Page;

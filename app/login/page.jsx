@@ -26,7 +26,7 @@ export default function Login() {
           if (user?.role === "user") {
             router.push("/");
           } else {
-            router.push("/dashboard/dashboard");
+            router.push("/dashboard");
           }
         })
         .catch((err) => {
@@ -51,7 +51,7 @@ export default function Login() {
       if (userData.role === "user") {
         router.push("/");
       } else {
-        router.push("/dashboard/dashboard");
+        router.push("/dashboard");
       }
     } catch (err) {
       console.error("Login failed:", err);
