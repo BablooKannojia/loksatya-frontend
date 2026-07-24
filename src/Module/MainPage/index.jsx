@@ -49,7 +49,7 @@ const MainPage = () => {
 
         <div className="lg:flex w-full items-start gap-6 px-4 max-w-[1400px] mx-auto mt-3">
           {/* 1. हीरो सेक्शन (70% स्पेस) */}
-          <div className="flex-1 min-h-[520px]">  {/* if any issue design please remove min-h-520 */}
+          <div className="flex-1 min-h-[480px]">  {/* if any issue design please remove min-h-520 */}
             <HeroSection sliderData={homeSlider} />
           </div>
 

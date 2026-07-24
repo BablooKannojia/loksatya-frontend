@@ -5,7 +5,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
-  IoHome,
   IoNewspaper,
   IoPlayCircle,
   IoBook,
@@ -36,53 +35,73 @@ function HeaderSearch({ variant = "icon", onAfterSubmit }) {
     onAfterSubmit?.();
   };
 
-  if (variant === "icon") {
+  if (variant === "inline") {
     return (
-      <div className="relative">
+      <form onSubmit={submit} className="flex items-center gap-2 p-4">
+        <input
+          ref={inputRef}
+          type="text"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder="खबर खोजें..."
+          className="flex-1 rounded-md border border-gray-200 px-3 py-2 text-sm text-ink outline-none focus:border-brand"
+        />
         <button
-          type="button"
-          onClick={() => setOpen((o) => !o)}
+          type="submit"
           aria-label="खोजें"
-          className="flex h-9 w-9 items-center justify-center rounded-full text-white transition-colors hover:bg-white hover:text-brand"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-brand text-white hover:bg-brand-dark"
         >
-          <IoSearchSharp className="text-[18px]" />
+          <IoSearchSharp className="text-[16px]" />
         </button>
-
-        {open && (
-          <div className="fixed inset-0 z-[80] bg-black/40 lg:absolute lg:inset-auto lg:right-0 lg:top-full lg:mt-2 lg:bg-transparent">
-            <form
-              onSubmit={submit}
-              className="mx-auto mt-20 flex w-[92%] max-w-md items-center gap-2 rounded-lg bg-white p-2 shadow-2xl lg:mx-0 lg:mt-0 lg:w-[320px]"
-            >
-              <input
-                ref={inputRef}
-                type="text"
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-                placeholder="खबर खोजें..."
-                className="flex-1 rounded-md border border-gray-200 px-3 py-2 text-sm text-ink outline-none focus:border-brand"
-              />
-              <button
-                type="submit"
-                aria-label="खोजें"
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-brand text-white hover:bg-brand-dark"
-              >
-                <IoSearchSharp className="text-[16px]" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                aria-label="बंद करें"
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-ink-soft hover:bg-gray-100"
-              >
-                <IoCloseSharp className="text-[18px]" />
-              </button>
-            </form>
-          </div>
-        )}
-      </div>
+      </form>
     );
   }
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-label="खोजें"
+        className="flex h-9 w-9 items-center justify-center rounded-full text-white transition-colors hover:bg-white hover:text-brand"
+      >
+        <IoSearchSharp className="text-[18px]" />
+      </button>
+
+      {open && (
+        <div className="fixed inset-0 z-[80] bg-black/40 lg:absolute lg:inset-auto lg:right-0 lg:top-full lg:mt-2 lg:bg-transparent">
+          <form
+            onSubmit={submit}
+            className="mx-auto mt-20 flex w-[92%] max-w-md items-center gap-2 rounded-lg bg-white p-2 shadow-2xl lg:mx-0 lg:mt-0 lg:w-[320px]"
+          >
+            <input
+              ref={inputRef}
+              type="text"
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              placeholder="खबर खोजें..."
+              className="flex-1 rounded-md border border-gray-200 px-3 py-2 text-sm text-ink outline-none focus:border-brand"
+            />
+            <button
+              type="submit"
+              aria-label="खोजें"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-brand text-white hover:bg-brand-dark"
+            >
+              <IoSearchSharp className="text-[16px]" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              aria-label="बंद करें"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-ink-soft hover:bg-gray-100"
+            >
+              <IoCloseSharp className="text-[18px]" />
+            </button>
+          </form>
+        </div>
+      )}
+    </div>
+  );
 }
 
 function categoryHref(text = "") {
@@ -106,9 +125,9 @@ function NavItem({ item }) {
             <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
           </svg>
         )}
-        
+
         <span>{item.text}</span>
-        
+
         {hasSub && (
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3 h-3 transition-transform duration-200 group-hover:rotate-180 opacity-80">
             <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
@@ -142,7 +161,7 @@ function HeaderNav({ menu }) {
   const hiddenRef = useRef(null);
   const moreBtnRef = useRef(null);
   const moreWrapRef = useRef(null);
-  
+
   const fullMenu = [
     { _id: "static-home", text: "होम" },
     ...(menu || []),
@@ -160,17 +179,17 @@ function HeaderNav({ menu }) {
     const containerWidth = container.getBoundingClientRect().width;
     const moreWidth = moreBtnRef.current ? moreBtnRef.current.getBoundingClientRect().width + 8 : 80;
     const children = Array.from(hidden.children);
-    
+
     let total = 0;
     let count = 0;
 
     for (let i = 0; i < children.length; i++) {
-      const itemWidth = children[i].getBoundingClientRect().width + 2; 
+      const itemWidth = children[i].getBoundingClientRect().width + 2;
       const isLastItem = i === children.length - 1;
       const reserve = isLastItem ? 0 : moreWidth;
 
       if (total + itemWidth + reserve > containerWidth) {
-        break; 
+        break;
       }
 
       total += itemWidth;
@@ -218,8 +237,8 @@ function HeaderNav({ menu }) {
           const isHome = item._id === "static-home";
           const hasSub = !isHome && item.subcategories?.length > 0;
           return (
-            <li 
-              key={item._id} 
+            <li
+              key={item._id}
               className="rounded-md px-3 py-2 font-devanagari text-[14px] font-semibold flex items-center gap-1.5"
             >
               {isHome && <span className="w-4 h-4 inline-block" />}
@@ -376,7 +395,7 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Mobile Header Layout (Exactly as requested image) */}
+        {/* Mobile Header Layout */}
         <div className="flex lg:hidden items-center justify-between px-3 py-2 text-white">
           {/* Left: Drawer Toggle Button & Logo */}
           <div className="flex items-center gap-2">
@@ -399,15 +418,13 @@ export default function Header() {
                 width={250}
                 height={50}
                 priority
-                className="h-[50px] w-auto object-contain" 
+                className="h-[50px] w-auto object-contain"
               />
             </Link>
           </div>
 
           {/* Right: Quick Icons Toolbar */}
           <div className="flex items-center gap-3 sm:gap-4 text-white font-devanagari">
-
-            {/* ई-पेपर (विशेष हाइलाइट) */}
             <Link
               href="https://epaper.loksatya.com/"
               target="blank"
@@ -417,7 +434,6 @@ export default function Header() {
               <span className="text-[9.5px] font-bold leading-none mt-0.5 tracking-tight">ई-पेपर</span>
             </Link>
 
-            {/* वीडियो / लाइव */}
             <Link
               href="/videos"
               aria-label="वीडियो"
@@ -426,7 +442,6 @@ export default function Header() {
               <IoPlayCircle className="text-[23px]" />
             </Link>
 
-            {/* वेब स्टोरीज */}
             <Link
               href="/stories"
               aria-label="वेब स्टोरीज"
@@ -435,7 +450,6 @@ export default function Header() {
               <IoBook className="text-[20px]" />
             </Link>
 
-            {/* फोटो */}
             <Link
               href="/photo-gallery"
               aria-label="फोटो"
@@ -444,7 +458,6 @@ export default function Header() {
               <IoImages className="text-[20px]" />
             </Link>
 
-            {/* सर्च */}
             <div className="ml-0.5">
               <HeaderSearch variant="icon" />
             </div>
