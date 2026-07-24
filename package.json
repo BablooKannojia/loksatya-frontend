@@ -11,6 +11,7 @@
   "dependencies": {
     "@radix-ui/react-dropdown-menu": "^2.1.20",
     "axios": "^1.18.1",
+    "jodit-react": "^5.3.21",
     "next": "16.2.10",
     "react": "19.2.4",
     "react-dom": "19.2.4",
