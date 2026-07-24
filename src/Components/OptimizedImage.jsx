@@ -3,15 +3,21 @@
 import { useState } from "react";
 import Image from "next/image";
 
-/**
- * Thin wrapper around next/image.
- */
-const OptimizedImg = ({ src, alt, style, quality = 80 }) => {
+const OptimizedImg = ({ 
+  src,
+  alt,
+  className = "",
+  style,
+  quality = 80,
+  priority = false,
+  sizes = "(max-width: 768px) 100vw, 50vw",
+}) => {
   const [isError, setIsError] = useState(false);
 
   if (!src || isError) {
     return (
       <div
+        className={className}
         style={{
           ...style,
           backgroundColor: "#f0f0f0",
@@ -34,6 +40,7 @@ const OptimizedImg = ({ src, alt, style, quality = 80 }) => {
         width: "100%",
         height: "100%",
         overflow: "hidden",
+        ...style,
       }}
     >
       <Image
@@ -41,8 +48,9 @@ const OptimizedImg = ({ src, alt, style, quality = 80 }) => {
         alt={alt || "News image"}
         fill
         quality={quality}
-        sizes="(max-width: 768px) 100vw, 50vw"
-        loading="lazy"
+        sizes={sizes}
+        loading={priority ? undefined : "lazy"}
+        priority={priority}
         onError={() => setIsError(true)}
         style={{
           objectFit: "cover",

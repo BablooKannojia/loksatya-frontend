@@ -10,7 +10,6 @@ import {
   IoPlayCircle,
   IoBook,
   IoImages,
-  IoAlbums,
   IoSearchSharp,
   IoCloseSharp,
 } from "react-icons/io5";
@@ -144,7 +143,10 @@ function HeaderNav({ menu }) {
   const moreBtnRef = useRef(null);
   const moreWrapRef = useRef(null);
   
-  const fullMenu = [{ _id: "static-home", text: "होम" }, ...menu];
+  const fullMenu = [
+    { _id: "static-home", text: "होम" },
+    ...(menu || []),
+  ];
 
   const [visibleCount, setVisibleCount] = useState(fullMenu.length);
   const [moreOpen, setMoreOpen] = useState(false);
@@ -365,7 +367,7 @@ export default function Header() {
             {loading ? (
               <div className="h-9 w-full" />
             ) : (
-              menu.length > 0 && <HeaderNav menu={menu} />
+              <HeaderNav menu={menu} />
             )}
           </div>
 
@@ -441,15 +443,6 @@ export default function Header() {
             >
               <IoImages className="text-[20px]" />
             </Link>
-
-            {/* गैलरी */}
-            {/* <Link
-              href="/stories"
-              aria-label="गैलरी"
-              className="flex flex-col items-center justify-center transition-transform active:scale-95 hover:opacity-90"
-            >
-              <IoAlbums className="text-[20px]" />
-            </Link> */}
 
             {/* सर्च */}
             <div className="ml-0.5">

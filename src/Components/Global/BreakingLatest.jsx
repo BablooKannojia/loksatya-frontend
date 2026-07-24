@@ -22,7 +22,6 @@ const HomeHeroSection = ({
 
   return (
     <div className="w-full px-2 lg:px-0 py-4 bg-white">
-      {/* 🚀 Main Layout Grid: items-stretch keeps heights uniform to prevent CLS */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch content-start">
         
         {/* COLUMN 1: Latest News */}

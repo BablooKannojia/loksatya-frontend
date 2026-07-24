@@ -21,59 +21,64 @@ export function CommonProvider({ children }) {
     error: null,
   });
 
-  const fetchCommonData = useCallback(async () => {
-    try {
-      setState((prev) => ({ ...prev, loading: true, error: null }));
-      const res = await fetch(`${API_URL}/common`);
-      const json = await res.json();
+const fetchCommonData = useCallback(async () => {
+  try {
+    setState((prev) => ({
+      ...prev,
+      loading: true,
+      error: null,
+    }));
 
-      if (json?.success) {
-        const rawCategories = json.categories || [];
+    const res = await fetch(`${API_URL}/common`);
+    const json = await res.json();
 
-        // /common already returns each category's articles in `data` —
-        // no extra per-category /article calls needed.
-        const sortedCategories = [...rawCategories].sort((a, b) => {
-          const seqA = a.sequence !== undefined ? a.sequence : Number.MAX_VALUE;
-          const seqB = b.sequence !== undefined ? b.sequence : Number.MAX_VALUE;
-          return seqA - seqB;
-        });
+    const rawCategories = json.categories;
 
-        const categoryArticles = sortedCategories
-          .map((c) => ({
-            category: c.category,
-            imgData: (c.data || []).filter((a) => a.type === "img" || !a.type),
-            vidData: (c.data || []).filter((a) => a.type === "vid"),
-          }))
-          .filter((c) => c.imgData.length > 0 || c.vidData.length > 0);
+    rawCategories.sort((a, b) => a.sequence - b.sequence);
 
-        // priority articles derived from the same payload (no separate fetch)
-        const priorityArticles = sortedCategories
-          .flatMap((c) => c.data || [])
-          .filter((a) => a.priority === true);
+    const categoryArticles = [];
+    const priorityArticles = [];
 
-        setState({
-          categories: rawCategories,
-          menu: json.menu || [],
-          categoryArticles,
-          priorityArticles,
-          loading: false,
-          error: null,
-        });
-      } else {
-        setState((prev) => ({
-          ...prev,
-          loading: false,
-          error: "डेटा लोड करने में समस्या हुई",
-        }));
+    for (const category of rawCategories) {
+      const imgData = [];
+      const vidData = [];
+
+      for (const article of category.data) {
+        if (article.priority) {
+          priorityArticles.push(article);
+        }
+
+        if (article.type === "vid") {
+          vidData.push(article);
+        } else {
+          imgData.push(article);
+        }
       }
-    } catch (err) {
-      setState((prev) => ({
-        ...prev,
-        loading: false,
-        error: err?.message || "Network error",
-      }));
+
+      categoryArticles.push({
+        category: category.category,
+        imgData,
+        vidData,
+      });
     }
-  }, []);
+
+    setState({
+      categories: rawCategories,
+      menu: json.menu,
+      categoryArticles,
+      priorityArticles,
+      loading: false,
+      error: null,
+    });
+
+  } catch (err) {
+    setState((prev) => ({
+      ...prev,
+      loading: false,
+      error: err.message,
+    }));
+  }
+}, []);
 
   useEffect(() => {
     fetchCommonData();

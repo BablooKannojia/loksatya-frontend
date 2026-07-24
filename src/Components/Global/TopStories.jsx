@@ -1,10 +1,10 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useHomeData } from "../../Context/HomeContext";
 import ShirshCard from "../../Components/MainPage/ShirshCard";
-import { FaGreaterThan } from "react-icons/fa"; 
+import { FaGreaterThan } from "react-icons/fa";
 
 export default function TopStories() {
   const router = useRouter();
@@ -12,7 +12,6 @@ export default function TopStories() {
 
   const topStories = homeData?.topStories || [];
 
-  // 1️⃣ 0 CLS Safeguard: लोडिंग के दौरान 6 पूरे कार्ड्स का स्केलेटन दिखाएं ताकि उतनी ही जगह रिजर्व रहे
   if (loading) {
     return (
       <div className="w-full lg:p-4 py-4 bg-white rounded-lg shadow-sm font-devanagari min-h-[620px]">
@@ -36,18 +35,17 @@ export default function TopStories() {
 
   if (topStories.length === 0) return null;
 
-  // 2️⃣ डेटा को अपडेट डेट के हिसाब से सॉर्ट करना और पहले ही टॉप 6 फिल्टर कर लेना
   const sortedStories = [...topStories]
     .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
     .slice(0, 6);
 
   return (
     <div id="TopStories" className="w-full font-devanagari bg-white lg:p-4 p-2 rounded-lg shadow-sm flex flex-col justify-between min-h-[620px]">
-      
+
       <div>
         {/* हेडर सेक्शन */}
-        <div 
-          className="cursor-pointer border-b-2 border-brand pb-2 mb-4 h-[34px]" 
+        <div
+          className="cursor-pointer border-b-2 border-brand pb-2 mb-4 h-[34px]"
           onClick={() => router.push(`/stories`)}
         >
           <h2 className="font-bold text-[18px] text-ink-soft hover:text-brand transition-colors flex items-center gap-2">
@@ -76,17 +74,15 @@ export default function TopStories() {
         </div>
       </div>
 
-      {/* 3️⃣ 'और भी' देखें बटन (Right-End Alignment & Dynamic Check) */}
       {topStories.length > 6 ? (
         <div
           className="flex items-center justify-end text-[13px] font-semibold text-brand hover:underline cursor-pointer border-t border-gray-100 pt-2 mt-2 self-end select-none h-[28px] w-full"
           onClick={() => router.push(`/stories`)}
         >
-          <span>और भी</span> 
+          <span>और भी</span>
           <FaGreaterThan className="ml-1.5 text-[9px]" />
         </div>
       ) : (
-        /* CLS रोकने के लिए खाली स्पेस होल्डर */
         <div className="h-[28px] w-full border-t border-transparent" />
       )}
 

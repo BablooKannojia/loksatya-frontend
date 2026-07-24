@@ -29,10 +29,10 @@ export default function VisualStories() {
     const el = scrollRef.current;
     if (el) {
       el.addEventListener("scroll", checkScrollLimits);
-      setTimeout(checkScrollLimits, 500);
+      requestAnimationFrame(checkScrollLimits);
     }
     return () => el?.removeEventListener("scroll", checkScrollLimits);
-  }, [stories]);
+  }, [stories.length]);
 
   const handleScroll = (direction) => {
     if (scrollRef.current) {

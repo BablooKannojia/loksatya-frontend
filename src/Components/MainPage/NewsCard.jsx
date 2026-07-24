@@ -10,6 +10,11 @@ const NewsCard = ({ data, onPress }) => {
     <div
       className="group relative h-[210px] w-full overflow-hidden rounded-xl cursor-pointer shadow-sm hover:shadow-md transition-all duration-300"
       onClick={onPress}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") onPress?.();
+      }}
     >
       {/* Optimized Image with Hover Zoom Effect */}
       <div className="w-full h-full transform group-hover:scale-105 transition-transform duration-500">
@@ -17,6 +22,7 @@ const NewsCard = ({ data, onPress }) => {
           src={data?.image || img}
           alt={data?.title || "News image"}
           className="w-full h-full object-cover rounded-xl"
+          sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 25vw"
         />
       </div>
 

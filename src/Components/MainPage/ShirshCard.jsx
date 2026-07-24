@@ -8,13 +8,20 @@ const ShirshCard = ({ text, image, OnPress, id, wid = "w-[40%]", date }) => {
     <div
       onClick={OnPress}
       id={id}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ")
+          OnPress?.();
+      }}
       className="group flex gap-2 w-full h-[100px] cursor-pointer border-b border-gray-100 pb-1 last:border-0 last:pb-0 transition-all duration-200"
     >
       {/* 1. इमेज कंटेनर (ज़ूम इफ़ेक्ट के साथ) */}
-      <div className={`${wid} shrink-0 relative overflow-hidden rounded-md bg-gray-100`}>
+      <div className={`${wid} h-full shrink-0 relative overflow-hidden rounded-md bg-gray-100`}>
         <OptimizedImg
           src={image || defaultImg}
           alt={text || "News image"}
+          sizes="120px"
           className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
         />
       </div>

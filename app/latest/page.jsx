@@ -222,8 +222,8 @@ export default function TopStoriesClient() {
       </div>
 
       {/* Visual Stories Section */}
-      <div className="w-full px-4 mt-6 max-w-[1400px] mx-auto">
-        <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-xs">
+      <div className="w-full lg:px-4 mt-6 max-w-[1400px] mx-auto">
+        <div className="bg-white rounded-2xl py-4 border border-gray-100 shadow-xs">
           <VisualStories />
         </div>
       </div>

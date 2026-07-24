@@ -30,10 +30,12 @@ export default function HeroSection({ sliderData = [] }) {
     const el = scrollRef.current;
     if (el) {
       el.addEventListener("scroll", checkScrollLimits);
-      setTimeout(checkScrollLimits, 600);
+      requestAnimationFrame(() => {
+        checkScrollLimits();
+      });
     }
     return () => el?.removeEventListener("scroll", checkScrollLimits);
-  }, [gridArticles]);
+  }, [gridArticles.length]);
 
   // 🚀 Auto Scroll Logic (3 सेकंड में स्वैप + Infinite Loop)
   useEffect(() => {
@@ -101,6 +103,7 @@ export default function HeroSection({ sliderData = [] }) {
             src={mainArticle.image}
             alt={mainArticle.title || "Main news article"}
             fill
+            quality={80}
             sizes="(max-width: 1024px) 100vw, 70vw"
             priority={true}
             fetchPriority="high" 
@@ -162,6 +165,7 @@ export default function HeroSection({ sliderData = [] }) {
                   src={article.image}
                   alt={article.title || "Grid news article"}
                   fill
+                  quality={80}
                   sizes="(max-width: 768px) 80vw, 23vw"
                   loading="lazy" 
                   className="object-cover transition-transform duration-500 group-hover:scale-105"

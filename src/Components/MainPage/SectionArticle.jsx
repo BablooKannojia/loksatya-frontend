@@ -155,7 +155,7 @@ const SingleArticle = ({ category, combinedArticles = [] }) => {
             >
               {/* Thumbnail Container with Reserved Box Size */}
               <div className="w-[95px] sm:w-[110px] h-[65px] sm:h-[68px] shrink-0 overflow-hidden rounded-sm bg-gray-100 shadow-sm relative">
-                <img 
+                <img
                   src={element?.image || "/assets/placeholder.png"} 
                   alt={element?.title || "News thumbnail"} 
                   className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-200" 

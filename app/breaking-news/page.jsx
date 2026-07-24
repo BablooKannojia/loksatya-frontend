@@ -103,9 +103,9 @@ export default function TopStoriesPage() {
         <meta name="twitter:image" content={pageImage} />
       </Head>
 
-      <div className="lg:flex w-full items-start gap-6 px-4 max-w-[1400px] mx-auto mt-3">
+      <div className="lg:flex w-full items-start gap-6 lg:px-4 max-w-[1400px] mx-auto mt-3">
         {/* 📰 Main Container Card */}
-        <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-xs flex-1">
+        <div className="bg-white rounded-2xl lg:px-4 px-4 border border-gray-100 shadow-xs flex-1">
           
           {/* Header (बड़ी खबर) */}
           <div className="border-b-2 border-[#D90429] pb-2 mb-5 flex items-center justify-between">
@@ -258,8 +258,8 @@ export default function TopStoriesPage() {
       </div>
 
       {/* 🚀 Visual Stories Section */}
-      <div className="w-full px-4 mt-6">
-        <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-xs">
+      <div className="w-full lg:px-4 mt-6">
+        <div className="bg-white rounded-2xl lg:py-4 border border-gray-100 shadow-xs">
           <VisualStories />
         </div>
       </div>

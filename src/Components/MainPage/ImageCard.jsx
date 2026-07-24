@@ -32,6 +32,12 @@ const ImageCard = ({
       className={`relative overflow-hidden cursor-pointer group ${border}`}
       style={{ width, height }}
       onClick={handleCardClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ")
+          handleCardClick();
+      }}
     >
       {/* 🖼️ Image Container */}
       <div className="w-full h-full relative">
@@ -41,6 +47,7 @@ const ImageCard = ({
               <OptimizedImg
                 key={index}
                 src={imgSrc}
+                sizes="(max-width:1024px) 100vw, 40vw"
                 alt={text || `Image ${index + 1}`}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               />
@@ -50,6 +57,7 @@ const ImageCard = ({
           <OptimizedImg
             src={Array.isArray(img) ? img[0] : img}
             alt={text || "News image"}
+            sizes="(max-width:1024px) 100vw, 40vw"
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
         )}
