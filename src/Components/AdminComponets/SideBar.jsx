@@ -36,7 +36,7 @@ export default function SideBar({ accessList = [] }) {
     { name: 'Top Stories', path: '/dashboard/topstories', icon: FiTrendingUp, key: 'topstories' },
     { name: 'Breaking News', path: '/dashboard/breakingnews', icon: FiZap, key: 'breakingnews' },
     { name: 'Flash News', path: '/dashboard/flashnews', icon: FiAlertCircle, key: 'flashnews' },
-    { name: 'Categories & Tags', path: '/dashboard/content', icon: FiTag, key: 'content' },
+    { name: 'Categories & Tags', path: '/dashboard/tags-category', icon: FiTag, key: 'categories' },
     { name: 'Live Stream', path: '/dashboard/live', icon: FiTv, key: 'live' },
     { name: 'Visual Stories', path: '/dashboard/stories', icon: FiFilm, key: 'stories' },
     { name: 'Videos', path: '/dashboard/videos', icon: FiVideo, key: 'videos' },
@@ -52,8 +52,17 @@ export default function SideBar({ accessList = [] }) {
   const filteredMenu = menuItems.filter((item) => {
     if (item.key === 'dashboard') return true;
     return accessList.includes(item.key);
+
   });
 
+  console.log("Access List:", accessList);
+
+  console.log(`sidebar`,
+    menuItems.map(item => ({
+      key: item.key,
+      allowed: accessList.includes(item.key)
+    }))
+  );
   const handleLogout = () => {
     localStorage.clear();
     window.location.href = '/login';
@@ -94,11 +103,10 @@ export default function SideBar({ accessList = [] }) {
               <Link
                 key={item.key}
                 href={item.path}
-                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
-                  isActive
+                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${isActive
                     ? 'bg-[#D90429] text-white shadow-lg shadow-[#D90429]/20'
                     : 'text-slate-400 hover:bg-slate-800/60 hover:text-white'
-                }`}
+                  }`}
               >
                 <Icon size={18} className={isActive ? 'text-white' : 'text-slate-400'} />
                 <span>{item.name}</span>

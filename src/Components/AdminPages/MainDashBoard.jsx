@@ -27,10 +27,14 @@ export default function MainDashBoard({ accessList = [] }) {
   // 1. डेट फ़िल्टर स्टेट (Default: 2026-07-01 to 2026-07-31)
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+
+  console.log(accessList);
   
   // 2. एपीआई डेटा और लोडिंग स्टेट
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+
+    console.log(stats);
 
   // 3. API से डैशबोर्ड डेटा फेच करना
   const fetchDashboardData = async () => {
@@ -39,6 +43,7 @@ export default function MainDashBoard({ accessList = [] }) {
       const response = await axios.get(
         `${API_URL}/dashboard?date=${startDate},${endDate}`
       );
+      console.log(`dashboard`, response)
       if (response.data?.success) {
         setStats(response.data.data);
       }
@@ -100,7 +105,7 @@ export default function MainDashBoard({ accessList = [] }) {
       border: "border-orange-500/20",
     },
     {
-      title: "Categories",
+      title: "Categories & Tags",
       key: "categories",
       icon: FiTag,
       color: "text-cyan-400",

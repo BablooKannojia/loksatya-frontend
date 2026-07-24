@@ -1,28 +1,26 @@
 "use client";
 
 import React, { useContext } from "react";
-import { useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { OnEdit as onEditContext } from "../../../src/Context/index";
 import ArticleFormBase from "../../../src/Components/AdminComponets/ArticleFormBase";
 
-const Upload = () => {
-  const searchParams = useSearchParams();
-  const edit = searchParams.get("edit");
+const TopStories = () => {
+  const pathname = usePathname();
   const { id } = useContext(onEditContext);
 
   return (
     <ArticleFormBase
-      heading="Create New Article"
+      heading="Top Story"
       editHeading="Edit Article"
-      subheading="Fill out the information below to manage your publication post."
-      defaultNewsType="upload"
+      subheading="Fill out the information below to publish a top story."
+      defaultNewsType="topStories"
       editId={id}
-      shouldLoadForEdit={!!edit}
+      shouldLoadForEdit={pathname !== "/dashboard/topstories"}
       enableScheduling={true}
-      resetEditWhenNotLoading={true}
       onCancelEdit={() => window.location.reload()}
     />
   );
 };
 
-export default Upload;
+export default TopStories;
