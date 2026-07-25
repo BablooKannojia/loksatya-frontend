@@ -55,14 +55,6 @@ export default function SideBar({ accessList = [] }) {
 
   });
 
-  console.log("Access List:", accessList);
-
-  console.log(`sidebar`,
-    menuItems.map(item => ({
-      key: item.key,
-      allowed: accessList.includes(item.key)
-    }))
-  );
   const handleLogout = () => {
     localStorage.clear();
     window.location.href = '/login';

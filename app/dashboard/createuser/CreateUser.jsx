@@ -122,21 +122,19 @@ const CreateUser = () => {
 
   useEffect(() => {
     axios
-      .get(`${API_URL}/content?type=category`)
-      .then((content) => {
-        let arr = [];
-        for (let i = 0; i < content.data.length; i++) {
-          const element = content.data[i];
-          arr.push({
-            key: element._id,
-            value: element.text,
-            label: element.text,
-          });
-        }
+      .get(`${API_URL}/content?type=category&page=1&limit=1000`)
+      .then((res) => {
+        const categories = res.data?.data || [];
+        const arr = categories.map((element) => ({
+          key: element._id,
+          value: element.text,
+          label: element.text,
+        }));
         setCateGet(arr);
       })
       .catch((err) => {
         console.error(err);
+        setCateGet([]);
       });
   }, []);
 

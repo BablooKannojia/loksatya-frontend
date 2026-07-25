@@ -6,8 +6,8 @@ import { API_URL } from "../../../src/API";
 
 const TagsCategory = () => {
     // Data states
-    const [userData, setUserData] = useState([]); // Master list
-    const [filteredData, setFilteredData] = useState([]); // Rendered list
+    const [userData, setUserData] = useState([]);
+    const [filteredData, setFilteredData] = useState([]);
 
     // Filter & Search states
     const [filterItem, setFilterItem] = useState("category");
@@ -35,9 +35,12 @@ const TagsCategory = () => {
     const [tableLoading, setTableLoading] = useState(false);
     const [toastMessage, setToastMessage] = useState({ text: "", type: "" });
 
+
     // Pagination states
     const [currentPage, setCurrentPage] = useState(1);
     const pageSize = 10;
+    const [totalItems, setTotalItems] = useState(0);
+    const [totalPages, setTotalPages] = useState(1);
 
     // Notification Helper
     const notify = (text, type = "info") => {
@@ -49,89 +52,141 @@ const TagsCategory = () => {
     const fetchData = useCallback(async () => {
         setTableLoading(true);
         try {
-            const contentRes = await axios.get(`${API_URL}/content`);
-            const subCategoryRes = await axios.get(`${API_URL}/subcategory`);
+            let combinedData = [];
+            let total = 0;
+            let pages = 1;
 
-            // 1. Content data (tags & categories)
-            const contentData = Array.isArray(contentRes.data) ? contentRes.data : [];
-
-            // 2. Subcategory data (Explicitly assigning type: "sub" if missing)
-            const rawSubData = Array.isArray(subCategoryRes.data) ? subCategoryRes.data : [];
-            const normalizedSubData = rawSubData.map((item) => ({
-                ...item,
-                type: item.type || "sub",
-            }));
-
-            // Combine both array results
-            const allData = [...contentData, ...normalizedSubData].reverse();
-
-            setUserData(allData);
-            setFilteredData(allData);
-
-            // Fetch Categories for SubCategory dropdown in Add Modal
-            const categoryRes = await axios.get(`${API_URL}/content?type=category`);
-            if (Array.isArray(categoryRes.data)) {
-                const categories = categoryRes.data.map((item) => ({
-                    key: item._id,
-                    value: item.text,
-                    label: item.text,
+            if (filterItem === "sub") {
+                // Subcategory alag collection/endpoint me hai, isliye alag call
+                const subRes = await axios.get(`${API_URL}/subcategory`);
+                const rawSubData = Array.isArray(subRes.data) ? subRes.data : (subRes.data?.data || []);
+                combinedData = rawSubData.map((item) => ({
+                    ...item,
+                    type: item.type || "sub",
                 }));
-                setCateGet(categories);
+
+                if (searchValue.trim()) {
+                    combinedData = combinedData.filter((item) =>
+                        item.text?.toLowerCase().includes(searchValue.toLowerCase())
+                    );
+                }
+
+                total = combinedData.length;
+                pages = Math.ceil(total / pageSize) || 1;
+                combinedData = combinedData.slice(
+                    (currentPage - 1) * pageSize,
+                    currentPage * pageSize
+                );
+            } else if (filterItem === "all") {
+                // All: content + subcategory dono fetch karo aur combine karo
+                const [contentRes, subRes] = await Promise.all([
+                    axios.get(`${API_URL}/content?page=1&limit=1000${searchValue.trim() ? `&search=${searchValue.trim()}` : ""}`),
+                    axios.get(`${API_URL}/subcategory`),
+                ]);
+
+                const contentData = contentRes.data?.data || [];
+                const rawSubData = Array.isArray(subRes.data) ? subRes.data : (subRes.data?.data || []);
+                let normalizedSubData = rawSubData.map((item) => ({
+                    ...item,
+                    type: item.type || "sub",
+                }));
+
+                if (searchValue.trim()) {
+                    normalizedSubData = normalizedSubData.filter((item) =>
+                        item.text?.toLowerCase().includes(searchValue.toLowerCase())
+                    );
+                }
+
+                const allData = [...contentData, ...normalizedSubData];
+                total = allData.length;
+                pages = Math.ceil(total / pageSize) || 1;
+                combinedData = allData.slice(
+                    (currentPage - 1) * pageSize,
+                    currentPage * pageSize
+                );
+            } else {
+                // tag / category - normal content API
+                const params = new URLSearchParams();
+                params.set("page", currentPage.toString());
+                params.set("limit", pageSize.toString());
+                params.set("type", filterItem);
+                if (searchValue.trim()) params.set("search", searchValue.trim());
+
+                const contentRes = await axios.get(`${API_URL}/content?${params.toString()}`);
+                combinedData = contentRes.data?.data || [];
+                total = contentRes.data?.pagination?.total || 0;
+                pages = contentRes.data?.pagination?.totalPages || 1;
             }
+
+            setUserData(combinedData);
+            setFilteredData(combinedData);
+            setTotalItems(total);
+            setTotalPages(pages);
+
+            // Category dropdown fetch (Add Modal ke liye)
+            const categoryRes = await axios.get(`${API_URL}/content?type=category&page=1&limit=1000`);
+            const categories = categoryRes.data?.data || [];
+            setCateGet(categories.map((item) => ({
+                key: item._id, value: item.text, label: item.text,
+            })));
         } catch (err) {
             console.error("Error fetching data:", err);
             notify("Failed to fetch tags and categories.", "error");
+            setUserData([]);
+            setFilteredData([]);
+            setTotalItems(0);
+            setTotalPages(1);
         } finally {
             setTableLoading(false);
         }
-    }, []);
+    }, [currentPage, filterItem, searchValue]);
 
     useEffect(() => {
         fetchData();
     }, [fetchData]);
 
-    useEffect(() => {
-        let results = [...userData];
+    // useEffect(() => {
+    //     let results = [...userData];
 
-        if (filterItem === "tag") {
-            results = results.filter((item) => item.type === "tag");
-        } else if (filterItem === "category") {
-            results = results.filter((item) => item.type === "category");
-        } else if (filterItem === "sub") {
-            results = results.filter((item) => item.type === "sub");
-        }
+    //     if (filterItem === "tag") {
+    //         results = results.filter((item) => item.type === "tag");
+    //     } else if (filterItem === "category") {
+    //         results = results.filter((item) => item.type === "category");
+    //     } else if (filterItem === "sub") {
+    //         results = results.filter((item) => item.type === "sub");
+    //     }
 
-        if (searchValue.trim() !== "") {
-            results = results.filter((item) =>
-                item.text?.toLowerCase().includes(searchValue.toLowerCase())
-            );
-        }
+    //     if (searchValue.trim() !== "") {
+    //         results = results.filter((item) =>
+    //             item.text?.toLowerCase().includes(searchValue.toLowerCase())
+    //         );
+    //     }
 
-        setFilteredData(results);
-        setCurrentPage(1);
-    }, [filterItem, searchValue, userData]);
+    //     setFilteredData(results);
+    //     setCurrentPage(1);
+    // }, [filterItem, searchValue, userData]);
 
     // Filter & Search Handler
-    const handleFilter = () => {
-        let results = [...userData];
+    // const handleFilter = () => {
+    //     let results = [...userData];
 
-        if (filterItem === "tag") {
-            results = results.filter((item) => item.type === "tag");
-        } else if (filterItem === "category") {
-            results = results.filter((item) => item.type === "category");
-        } else if (filterItem === "sub") {
-            results = results.filter((item) => item.type === "sub");
-        }
+    //     if (filterItem === "tag") {
+    //         results = results.filter((item) => item.type === "tag");
+    //     } else if (filterItem === "category") {
+    //         results = results.filter((item) => item.type === "category");
+    //     } else if (filterItem === "sub") {
+    //         results = results.filter((item) => item.type === "sub");
+    //     }
 
-        if (searchValue.trim() !== "") {
-            results = results.filter((item) =>
-                item.text?.toLowerCase().includes(searchValue.toLowerCase())
-            );
-        }
+    //     if (searchValue.trim() !== "") {
+    //         results = results.filter((item) =>
+    //             item.text?.toLowerCase().includes(searchValue.toLowerCase())
+    //         );
+    //     }
 
-        setFilteredData(results);
-        setCurrentPage(1);
-    };
+    //     setFilteredData(results);
+    //     setCurrentPage(1);
+    // };
 
     // Reset Add Form
     const resetAddForm = () => {
@@ -139,6 +194,11 @@ const TagsCategory = () => {
         setType("tag");
         setSubCategory("");
         setIsModalOpen(false);
+    };
+
+    const handleFilter = () => {
+        setCurrentPage(1);
+        fetchData();
     };
 
     // Add Item Handler
@@ -234,11 +294,11 @@ const TagsCategory = () => {
     };
 
     // Client-side Pagination logic
-    const totalPages = Math.ceil(filteredData.length / pageSize) || 1;
-    const paginatedData = filteredData.slice(
-        (currentPage - 1) * pageSize,
-        currentPage * pageSize
-    );
+    // const totalPages = Math.ceil(filteredData.length / pageSize) || 1;
+    // const paginatedData = filteredData.slice(
+    //     (currentPage - 1) * pageSize,
+    //     currentPage * pageSize
+    // );
 
     return (
         <div className="min-h-screen bg-slate-900 text-slate-100 p-4 sm:p-8 font-sans">
@@ -246,10 +306,10 @@ const TagsCategory = () => {
             {toastMessage.text && (
                 <div
                     className={`fixed top-6 right-6 z-50 px-5 py-3 rounded-xl shadow-2xl backdrop-blur-md text-white text-sm font-semibold flex items-center gap-2 border transition-all animate-bounce ${toastMessage.type === "error"
-                            ? "bg-rose-600/90 border-rose-500/50"
-                            : toastMessage.type === "warning"
-                                ? "bg-amber-500/90 border-amber-400/50"
-                                : "bg-emerald-600/90 border-emerald-500/50"
+                        ? "bg-rose-600/90 border-rose-500/50"
+                        : toastMessage.type === "warning"
+                            ? "bg-amber-500/90 border-amber-400/50"
+                            : "bg-emerald-600/90 border-emerald-500/50"
                         }`}
                 >
                     {toastMessage.text}
@@ -362,14 +422,14 @@ const TagsCategory = () => {
                                         </div>
                                     </td>
                                 </tr>
-                            ) : paginatedData.length === 0 ? (
+                            ) : filteredData.length === 0 ? (
                                 <tr>
                                     <td colSpan="5" className="text-center py-12 text-slate-500">
                                         No matching records found.
                                     </td>
                                 </tr>
                             ) : (
-                                paginatedData.map((record) => (
+                                filteredData.map((record) => (
                                     <tr
                                         key={record._id}
                                         className="hover:bg-slate-700/30 transition-colors"

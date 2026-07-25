@@ -195,36 +195,8 @@ export function useArticleForm({
             resetEditWhenNotLoading &&
             typeof setOnEdit === "function"
         ) {
-            // Upload page ka behaviour: agar query param se edit nahi mila to
-            // stale onEdit state ko clear kar do
             setOnEdit(false);
         }
-
-        axios
-            .get(`${API_URL}/content?type=tag`)
-            .then((content) => {
-                setOptions(
-                    content.data.map((el) => ({
-                        key: el._id,
-                        value: el.text,
-                        label: el.text,
-                    }))
-                );
-            })
-            .catch((err) => console.error(err));
-
-        axios
-            .get(`${API_URL}/content?type=category`)
-            .then((content) => {
-                setCategoryData(
-                    content.data.map((el) => ({
-                        key: el._id,
-                        value: el.text,
-                        label: el.text,
-                    }))
-                );
-            })
-            .catch((err) => console.error(err));
 
         const userId =
             typeof window !== "undefined" ? localStorage.getItem("id") : null;
@@ -243,6 +215,68 @@ export function useArticleForm({
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [onEdit, editId, id, shouldLoadForEdit]);
+
+    useEffect(() => {
+        axios
+            .get(`${API_URL}/content?type=category&page=1&limit=100`)
+            .then((response) => {
+                const categories = response.data?.data || [];
+
+                setCategoryData(
+                    categories.map((el) => ({
+                        key: el._id,
+                        value: el.text,
+                        label: el.text,
+                    }))
+                );
+            })
+            .catch((err) => {
+                console.error("Error fetching categories:", err);
+                setCategoryData([]);
+            });
+    }, []);
+
+    const fetchTags = async (search = "") => {
+        try {
+            const params = new URLSearchParams();
+
+            params.set("type", "tag");
+            params.set("page", "1");
+            params.set("limit", "50");
+
+            if (search.trim()) {
+                params.set("search", search.trim());
+            }
+
+            const response = await axios.get(
+                `${API_URL}/content?${params.toString()}`
+            );
+
+            const tags = response.data?.data || response.data || [];
+
+            setOptions(
+                tags.map((el) => ({
+                    key: el._id,
+                    value: el.text,
+                    label: el.text,
+                }))
+            );
+        } catch (error) {
+            console.error("Error fetching tags:", error);
+            setOptions([]);
+        }
+    };
+    useEffect(() => {
+        fetchTags("");
+    }, []);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            fetchTags(searchTag);
+        }, 400);
+
+        return () => clearTimeout(timer);
+    }, [searchTag]);
 
     // Category badalte hi subcategory reload
     useEffect(() => {
@@ -399,9 +433,11 @@ export function useArticleForm({
         }
     };
 
-    const filteredOptions = options.filter((option) =>
-        option.label.toLowerCase().includes(searchTag.toLowerCase().trim())
-    );
+    // const filteredOptions = options.filter((option) =>
+    //     option.label.toLowerCase().includes(searchTag.toLowerCase().trim())
+    // );
+
+    const filteredOptions = options;
 
     const categoriesToDisplay =
         role === "admin"
