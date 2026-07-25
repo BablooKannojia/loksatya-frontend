@@ -5,44 +5,34 @@ import axios from "axios";
 import { API_URL } from "../../../src/API";
 
 const TagsCategory = () => {
-    // Data states
     const [userData, setUserData] = useState([]);
     const [filteredData, setFilteredData] = useState([]);
 
-    // Filter & Search states
     const [filterItem, setFilterItem] = useState("category");
     const [searchValue, setSearchValue] = useState("");
 
-    // Categories list for SubCategory dropdown
     const [cateGet, setCateGet] = useState([]);
 
-    // Form states (Add Modal)
     const [type, setType] = useState("tag");
     const [text, setText] = useState("");
     const [subCategory, setSubCategory] = useState("");
 
-    // Edit Sequence State
     const [selectedData, setSelectedData] = useState(null);
     const [editSequence, setEditSequence] = useState("");
 
-    // Delete State
     const [deleteItem, setDeleteItem] = useState(null);
 
-    // Modals & Loaders
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [tableLoading, setTableLoading] = useState(false);
     const [toastMessage, setToastMessage] = useState({ text: "", type: "" });
 
-
-    // Pagination states
     const [currentPage, setCurrentPage] = useState(1);
     const pageSize = 10;
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
 
-    // Notification Helper
     const notify = (text, type = "info") => {
         setToastMessage({ text, type });
         setTimeout(() => setToastMessage({ text: "", type: "" }), 3000);
@@ -144,49 +134,6 @@ const TagsCategory = () => {
     useEffect(() => {
         fetchData();
     }, [fetchData]);
-
-    // useEffect(() => {
-    //     let results = [...userData];
-
-    //     if (filterItem === "tag") {
-    //         results = results.filter((item) => item.type === "tag");
-    //     } else if (filterItem === "category") {
-    //         results = results.filter((item) => item.type === "category");
-    //     } else if (filterItem === "sub") {
-    //         results = results.filter((item) => item.type === "sub");
-    //     }
-
-    //     if (searchValue.trim() !== "") {
-    //         results = results.filter((item) =>
-    //             item.text?.toLowerCase().includes(searchValue.toLowerCase())
-    //         );
-    //     }
-
-    //     setFilteredData(results);
-    //     setCurrentPage(1);
-    // }, [filterItem, searchValue, userData]);
-
-    // Filter & Search Handler
-    // const handleFilter = () => {
-    //     let results = [...userData];
-
-    //     if (filterItem === "tag") {
-    //         results = results.filter((item) => item.type === "tag");
-    //     } else if (filterItem === "category") {
-    //         results = results.filter((item) => item.type === "category");
-    //     } else if (filterItem === "sub") {
-    //         results = results.filter((item) => item.type === "sub");
-    //     }
-
-    //     if (searchValue.trim() !== "") {
-    //         results = results.filter((item) =>
-    //             item.text?.toLowerCase().includes(searchValue.toLowerCase())
-    //         );
-    //     }
-
-    //     setFilteredData(results);
-    //     setCurrentPage(1);
-    // };
 
     // Reset Add Form
     const resetAddForm = () => {
@@ -292,13 +239,6 @@ const TagsCategory = () => {
             setDeleteItem(null);
         }
     };
-
-    // Client-side Pagination logic
-    // const totalPages = Math.ceil(filteredData.length / pageSize) || 1;
-    // const paginatedData = filteredData.slice(
-    //     (currentPage - 1) * pageSize,
-    //     currentPage * pageSize
-    // );
 
     return (
         <div className="min-h-screen bg-slate-900 text-slate-100 p-4 sm:p-8 font-sans">
