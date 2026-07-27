@@ -38,7 +38,6 @@ const TagsCategory = () => {
         setTimeout(() => setToastMessage({ text: "", type: "" }), 3000);
     };
 
-    // Fetch All Data
     const fetchData = useCallback(async () => {
         setTableLoading(true);
         try {
@@ -95,7 +94,6 @@ const TagsCategory = () => {
                     currentPage * pageSize
                 );
             } else {
-                // tag / category - normal content API
                 const params = new URLSearchParams();
                 params.set("page", currentPage.toString());
                 params.set("limit", pageSize.toString());
@@ -112,8 +110,6 @@ const TagsCategory = () => {
             setFilteredData(combinedData);
             setTotalItems(total);
             setTotalPages(pages);
-
-            // Category dropdown fetch (Add Modal ke liye)
             const categoryRes = await axios.get(`${API_URL}/content?type=category&page=1&limit=1000`);
             const categories = categoryRes.data?.data || [];
             setCateGet(categories.map((item) => ({
@@ -135,7 +131,6 @@ const TagsCategory = () => {
         fetchData();
     }, [fetchData]);
 
-    // Reset Add Form
     const resetAddForm = () => {
         setText("");
         setType("tag");
@@ -148,7 +143,6 @@ const TagsCategory = () => {
         fetchData();
     };
 
-    // Add Item Handler
     const onAdd = async () => {
         if (!text.trim()) {
             notify("Please enter a name!", "warning");
@@ -189,7 +183,6 @@ const TagsCategory = () => {
         }
     };
 
-    // Edit Sequence Handler
     const onEditSequence = async () => {
         if (!editSequence) {
             notify("Please enter a sequence number", "warning");
@@ -242,7 +235,6 @@ const TagsCategory = () => {
 
     return (
         <div className="min-h-screen bg-slate-900 text-slate-100 p-4 sm:p-8 font-sans">
-            {/* Toast Notification */}
             {toastMessage.text && (
                 <div
                     className={`fixed top-6 right-6 z-50 px-5 py-3 rounded-xl shadow-2xl backdrop-blur-md text-white text-sm font-semibold flex items-center gap-2 border transition-all animate-bounce ${toastMessage.type === "error"
@@ -291,7 +283,6 @@ const TagsCategory = () => {
                         </select>
                     </div>
 
-                    {/* Search Input */}
                     <div className="md:col-span-5">
                         <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">
                             Search Name
@@ -306,7 +297,6 @@ const TagsCategory = () => {
                         />
                     </div>
 
-                    {/* Action Buttons */}
                     <div className="md:col-span-4 flex items-end gap-2 mt-2 md:mt-0 pt-5">
                         <button
                             onClick={handleFilter}
@@ -402,12 +392,10 @@ const TagsCategory = () => {
                                             )}
                                         </td>
 
-                                        {/* Name */}
                                         <td className="py-3.5 px-4 text-slate-100 font-medium">
                                             {record.text}
                                         </td>
 
-                                        {/* Type / Category Tag */}
                                         <td className="py-3.5 px-4">
                                             <span
                                                 className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold border ${record.type === "category"
@@ -417,14 +405,12 @@ const TagsCategory = () => {
                                                         : "bg-cyan-500/10 text-cyan-400 border-cyan-500/30"
                                                     }`}
                                             >
-                                                {/* Agar subcategory item hai to parent category ka naam dikhayega, warna default type */}
                                                 {record.type === "sub"
                                                     ? (record.category || "Category")
                                                     : record.type}
                                             </span>
                                         </td>
 
-                                        {/* Delete Action */}
                                         <td className="py-3.5 px-4 text-right">
                                             <button
                                                 onClick={() => setDeleteItem(record)}
@@ -440,7 +426,6 @@ const TagsCategory = () => {
                     </table>
                 </div>
 
-                {/* Pagination Controls */}
                 <div className="p-4 border-t border-slate-700/60 bg-slate-900/40 flex items-center justify-between">
                     <button
                         onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
@@ -465,7 +450,6 @@ const TagsCategory = () => {
                 </div>
             </div>
 
-            {/* Modal: Add Tag / Category */}
             {isModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4">
                     <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-5">
@@ -550,8 +534,6 @@ const TagsCategory = () => {
                     </div>
                 </div>
             )}
-
-            {/* Modal: Edit Sequence */}
             {isEditModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4">
                     <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-5">
@@ -598,8 +580,6 @@ const TagsCategory = () => {
                     </div>
                 </div>
             )}
-
-            {/* Modal: Delete Confirmation */}
             {deleteItem && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4">
                     <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">

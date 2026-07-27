@@ -17,10 +17,45 @@ import { useRouter } from "next/navigation";
 const MainPage = () => {
   const router = useRouter();
   const [homeSlider, setHomeSlider] = useState(null);
+  const [selectedOption, setSelectedOption] = useState(null);
+  const [pollData, setPollData] = useState(null);
   const { categoryArticles, priorityArticles } = useCommonData();
   const { homeData } = useHomeData();
 
-  const dummySubmitVote = (pollId, index) => console.log("Voted:", pollId, index);
+  const submitVote = async (pollId, optionIndex) => {
+    try {
+      if (selectedOption !== null) return;
+
+      const res = await axios.post(
+        `${API_URL}/polls/${pollId}/vote`,
+        {
+          optionIndex,
+        }
+      );
+
+      setSelectedOption(optionIndex);
+
+      const poll = res.data;
+
+      const totalVotes = poll.options.reduce(
+        (sum, item) => sum + item.votes,
+        0
+      );
+
+      const updatedOptions = poll.options.map((item) => ({
+        ...item,
+        percentage:
+          totalVotes === 0 ? 0 : (item.votes / totalVotes) * 100,
+      }));
+
+      setPollData({
+        ...poll,
+        options: updatedOptions,
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const fetchSlider = async () => {
     try {
@@ -39,6 +74,13 @@ const MainPage = () => {
   useEffect(() => {
     fetchSlider();
   }, []);
+
+  useEffect(() => {
+    if (homeData?.poll) {
+      setPollData(homeData.poll);
+      setSelectedOption(null);
+    }
+  }, [homeData]);
 
 
   return (
@@ -63,11 +105,16 @@ const MainPage = () => {
           <HomeHeroSection
             latestNews={homeData?.latestNews || []}
             breakingNews={homeData?.breakingNews || []}
-            currentPoll={homeData?.poll || null}
-            pollOptions={homeData?.poll?.options || []}
-            selectedOption={null}
+
+            currentPoll={pollData}
+            pollOptions={pollData?.options || []}
+
+            // currentPoll={homeData?.poll || null}
+            // pollOptions={homeData?.poll?.options || []}
+            // selectedOption={null}
+            selectedOption={selectedOption}
             isLoading={{ polls: false }}
-            submitVote={dummySubmitVote}
+            submitVote={submitVote}
             navigation={(path) => router.push(path)}
             t={(key) => (key === "ln" ? "ताज़ा खबरें" : "बड़ी खबरें")}
           />
