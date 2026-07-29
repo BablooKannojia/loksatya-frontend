@@ -52,7 +52,7 @@ const Articles = () => {
     const [sliderArticles, setSliderArticles] = useState([]);
     const [publishers, setPublishers] = useState([]);
 
-    const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 16, total: 0 });
 
     const showToast = (message, type = "success") => {
         setToast({ show: true, message, type });
@@ -190,7 +190,7 @@ const Articles = () => {
         fetchSubCategories();
     }, [filterItemResponse.category]);
 
-    const getAllArticles = async (page = 1, limit = 10, filters = {}) => {
+    const getAllArticles = async (page = 1, limit = 16, filters = {}) => {
         setLoading(true);
         try {
             const filterParams = new URLSearchParams();
@@ -209,11 +209,6 @@ const Articles = () => {
             filterParams.append("limit", limit);
 
             const response = await axios.get(`${API_URL}/article?${filterParams}&pagenation=true&dashboard=true`);
-            console.log(`artcle find country`,
-                response.data.data.find(
-                    x => x._id === "country1784353036"
-                )
-            );
             const processed = processArticles(response.data.data || []);
             setArticleData(processed);
             setPagination({ current: page, pageSize: limit, total: response.data.total || 0 });
