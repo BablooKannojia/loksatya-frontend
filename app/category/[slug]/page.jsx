@@ -4,11 +4,6 @@ export async function generateMetadata({ params }) {
   const { slug } = await params;
   const api = process.env.NEXT_PUBLIC_API_URL;
 
-  console.log("slug:", slug);
-  console.log("api:", api);
-  console.log(process.env.NEXT_PUBLIC_API_URL);
-  console.log(params);
-
   if (!api) {
     return {
       title: "Loksatya",
