@@ -6,23 +6,41 @@ import { usePathname } from "next/navigation";
 import Providers from "./providers";
 import Header from "../src/Components/Global/Header";
 import Footer from "../src/Components/Global/Footer";
+// import Script from "next/script";
+
 
 export default function RootLayout({ children }) {
   const pathname = usePathname();
-
-  // यदि URL /dashboard से शुरू होता है तो यह true होगा
   const isDashboard = pathname.startsWith("/dashboard");
 
   return (
     <html lang="hi">
+
+      {/* Google Analytics  */}
+      {/* <head>
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-8VK0YBCS2Y"
+          strategy="afterInteractive"
+        />
+
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-8VK0YBCS2Y');
+          `}
+        </Script>
+      </head> */}
+
       <body>
         <Providers>
-          {/* अगर Dashboard पेज नहीं है, तभी Header दिखाएं */}
+          {/* If not found Dashboard, Then Header show */}
           {!isDashboard && <Header />}
 
           {children}
 
-          {/* अगर Dashboard पेज नहीं है, तभी Footer दिखाएं */}
+          {/* If not found Dashboard, Then Footer show */}
           {!isDashboard && <Footer />}
         </Providers>
       </body>
