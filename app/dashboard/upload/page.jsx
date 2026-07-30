@@ -11,7 +11,10 @@ export const metadata = {
 };
 
 function page() {
-  return <Upload />
+  return (
+    <>Upload page</>
+  )
+  // return <Upload />
 }
 
 export default page

@@ -34,8 +34,6 @@ const defaultFilterObject = {
 const Articles = () => {
     const router = useRouter();
     const { setOnEdit, setId } = useContext(onEditContext);
-
-    // States
     const [articleData, setArticleData] = useState([]);
     const [filterItemResponse, setFilterItemResponse] = useState(defaultFilterObject);
     const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -51,6 +49,7 @@ const Articles = () => {
     const [toast, setToast] = useState({ show: false, message: "", type: "success" });
     const [sliderArticles, setSliderArticles] = useState([]);
     const [publishers, setPublishers] = useState([]);
+    const [permissions, setPermisiions] = useState([]);
 
     const [pagination, setPagination] = useState({ current: 1, pageSize: 16, total: 0 });
 
@@ -67,11 +66,9 @@ const Articles = () => {
         });
     };
 
-    // 1,2,3,4 SLider 
     const getSliderArticles = async () => {
         const res = await axios.get(`${API_URL}/article/slider`);
         setSliderArticles(res.data.data);
-        console.log(`4 slider`, res.data.data);
     };
 
     useEffect(() => {
@@ -91,10 +88,16 @@ const Articles = () => {
         const position = getSliderPosition(droppedOn._id);
         if (position === "-") return;
         try {
-            await axios.put(`${API_URL}/article/slider/order`, {
-                id: dragged._id,
-                sliderOrder: position,
-            });
+            await axios.put(`${API_URL}/article/slider/order`,
+                {
+                    id: dragged._id,
+                    sliderOrder: position,
+                },
+                {
+                    headers: {
+                        userId: localStorage.getItem("id"),
+                    },
+                });
             getSliderArticles();
             getAllArticles(
                 pagination.current,
@@ -152,13 +155,19 @@ const Articles = () => {
                 const userId = typeof window !== "undefined" ? localStorage.getItem("id") : null;
                 if (userId) {
                     const response = await axios.get(`${API_URL}/user?id=${userId}`);
-                    const data = response.data.data || response.data;
-                    setIsAdmin(data[0]?.role === "admin");
+                    const users = response.data?.[0];
+                    setIsAdmin(users?.role === "admin");
+                    setPermisiions(users?.acsses || []);
                 }
-            } catch (error) { console.error(error); }
+            } catch (error) { 
+                console.error(error)
+            }
         };
         fetchUserRole();
     }, []);
+
+    const canDragSlider =
+        isAdmin || permissions.includes("sliderorder");
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -438,28 +447,22 @@ const Articles = () => {
                                             const isOnline = article.status === "online";
                                             const serialNumber = (pagination.current - 1) * pagination.pageSize + index + 1;
 
-                                            // Extract Tags safely (Supports string or array)
-                                            // const rawTag = Array.isArray(article.tags)
-                                            //   ? article.tags[0]
-                                            //   : (article.tags || article.keyword || article.tag || "");
-
-                                            // const tagDisplay = rawTag ? (rawTag.startsWith("#") ? rawTag : `#${rawTag}`) : "";
-
                                             return (
                                                 <Draggable
                                                     key={article._id}
                                                     draggableId={article._id}
                                                     index={index}
+                                                    isDragDisabled={!canDragSlider}
                                                 >
                                                     {(provided, snapshot) => (
                                                         <tr
                                                             ref={provided.innerRef}
                                                             {...provided.draggableProps}
-                                                            {...provided.dragHandleProps}
+                                                            {...(canDragSlider ? provided.dragHandleProps : {})}
                                                             className={`hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors ${snapshot.isDragging ? "bg-indigo-50 dark:bg-slate-700 shadow-lg" : ""
                                                                 }`}
                                                         >
-                                                            {/* --- Article Details --- */}
+                                                            {/* Article Details */}
                                                             <td className="px-3 py-2.5 overflow-hidden">
                                                                 <div className="flex flex-col gap-0.5">
                                                                     <span
@@ -478,7 +481,7 @@ const Articles = () => {
                                                                 </div>
                                                             </td>
 
-                                                            {/* --- Media --- */}
+                                                            {/* Media */}
                                                             <td className="px-2 py-2.5 text-center">
                                                                 <div className="inline-block relative w-8 h-8 rounded border border-slate-200 dark:border-slate-700 overflow-hidden bg-slate-100 dark:bg-slate-800">
                                                                     {article.type === "vid" ? (
@@ -496,7 +499,7 @@ const Articles = () => {
                                                                 </div>
                                                             </td>
 
-                                                            {/* --- Status --- */}
+                                                            {/* Status */}
                                                             <td className="px-2 py-2.5 text-center">
                                                                 {isScheduled ? (
                                                                     <span className="text-amber-500 text-[10px] font-semibold bg-amber-50 dark:bg-amber-500/10 px-2 py-0.5 rounded-full">
@@ -515,7 +518,7 @@ const Articles = () => {
                                                                 )}
                                                             </td>
 
-                                                            {/* --- Category / Type --- */}
+                                                            {/* Category / Type */}
                                                             <td className="px-2 py-2.5 overflow-hidden">
                                                                 <div className="flex flex-col items-start gap-1">
                                                                     <span className="inline-block px-2 py-0.5 text-[11px] font-medium text-indigo-400 bg-indigo-950/50 border border-indigo-800/40 rounded-md truncate max-w-full">
@@ -527,7 +530,7 @@ const Articles = () => {
                                                                 </div>
                                                             </td>
 
-                                                            {/* --- Publisher / Tags (Gmail/Email ke niche Tag) --- */}
+                                                            {/* Publisher / Tags (Gmail/Email ke niche Tag) */}
                                                             <td className="px-2 py-2.5 overflow-hidden">
                                                                 <div className="flex flex-col gap-0.5">
                                                                     {/* Gmail/Publisher Name */}
@@ -544,7 +547,7 @@ const Articles = () => {
                                                                 </div>
                                                             </td>
 
-                                                            {/* --- Actions --- */}
+                                                            {/* Actions*/}
                                                             <td className="px-3 py-2.5 text-right">
                                                                 <div className="flex items-center justify-end gap-1.5">
                                                                     <button
@@ -583,7 +586,7 @@ const Articles = () => {
                     </Droppable>
                 </DragDropContext>
 
-                {/* --- Pagination --- */}
+                {/* Pagination */}
                 <div className="flex items-center justify-between px-4 py-2 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-[#1E293B]">
                     <span className="text-[11px] text-slate-500">
                         Total: <span className="font-bold text-slate-900 dark:text-white">{pagination.total}</span>
@@ -610,7 +613,7 @@ const Articles = () => {
                 </div>
             </div>
 
-            {/* --- Modals --- */}
+            {/* Modals */}
             {isModalDeleteOpen && (
                 <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                     <div className="bg-white dark:bg-slate-800 rounded-xl p-5 max-w-xs w-full shadow-xl">

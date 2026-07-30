@@ -11,5 +11,8 @@ export const metadata = {
 };
 
 export default function page() {
-  return <BreakingNews />
+  // return <BreakingNews />
+  return (
+    <>Breaking page</>
+  )
 }

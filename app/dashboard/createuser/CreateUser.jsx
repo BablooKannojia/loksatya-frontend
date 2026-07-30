@@ -91,6 +91,7 @@ const CreateUser = () => {
     { label: "Videos", value: "videos" },
     { label: "Photos", value: "photos" },
     { label: "Newsletter", value: "newsletter" },
+    { label: "Slider Order", value: "sliderorder"}
   ];
 
   // Handle Checkbox Selection
