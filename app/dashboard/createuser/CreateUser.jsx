@@ -79,6 +79,7 @@ const CreateUser = () => {
     { label: "Dashboard", value: "dashboard" },
     { label: "Breaking News", value: "breakingnews" },
     { label: "Upload", value: "upload" },
+    { label: "Live News", value: "livenews" },
     { label: "Create Users", value: "creatuser" },
     { label: "Advertisement", value: "ads" },
     { label: "Live", value: "live" },
