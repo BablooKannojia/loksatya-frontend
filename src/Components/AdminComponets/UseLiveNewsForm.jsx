@@ -30,13 +30,21 @@ export function useLiveNewsForm({
     const [status, setStatus] = useState("online");
     const [live, setLive] = useState(true);
     const [image, setImage] = useState(null);
-    const [gallery, setGallery] = useState([]);
     const [imageUpdated, setImageUpdated] = useState(false);
-    const [galleryUpdated, setGalleryUpdated] = useState(false);
+
+    // Category/Sub-category — ab bilkul useArticleForm jaise hi fetch hote hain
     const [categories, setCategories] = useState([]);
     const [subCategories, setSubCategories] = useState([]);
+    const [role, setRole] = useState("");
+    const [userCategoryData, setUserCategoryData] = useState([]);
+
+    // Tags — selected tags (post par lagne wale) alag hain, available tag
+    // options (search/select karne ke liye) alag hain — jaise ArticleForm me
     const [tags, setTags] = useState([]);
     const [tagInput, setTagInput] = useState("");
+    const [tagOptions, setTagOptions] = useState([]);
+    const [tagSearch, setTagSearch] = useState("");
+
     const [previewOpen, setPreviewOpen] = useState(false);
     const [toastMessage, setToastMessage] = useState({
         text: "",
@@ -137,25 +145,128 @@ export function useLiveNewsForm({
         notify("Tweet Embedded Successfully");
     };
 
-    const removeGalleryImage = (index) => {
-        setGallery((prev) =>
-            prev.filter((_, i) => i !== index)
+    // ---------------- Categories (Upload/BreakingNews wale pattern se) ----------------
+    useEffect(() => {
+        axios
+            .get(`${API_URL}/content?type=category&page=1&limit=100`)
+            .then((response) => {
+                const cats = response.data?.data || [];
+
+                setCategories(
+                    cats.map((el) => ({
+                        key: el._id,
+                        value: el.text,
+                        label: el.text,
+                    }))
+                );
+            })
+            .catch((err) => {
+                console.error("Error fetching categories:", err);
+                setCategories([]);
+            });
+    }, []);
+
+    // ---------------- Sub-categories: selected category badalte hi reload ----------------
+    useEffect(() => {
+        if (!category) {
+            setSubCategories([]);
+            return;
+        }
+
+        axios
+            .get(`${API_URL}/subcategory?category=${category}`)
+            .then((content) => {
+                setSubCategories(
+                    (content.data || []).map((el) => ({
+                        key: el._id,
+                        value: el.text,
+                        label: el.text,
+                    }))
+                );
+            })
+            .catch((err) => console.error(err));
+    }, [category]);
+
+    // ---------------- Tags: available options + search (debounced) ----------------
+    const fetchTagOptions = async (search = "") => {
+        try {
+            const params = new URLSearchParams();
+
+            params.set("type", "tag");
+            params.set("page", "1");
+            params.set("limit", "50");
+
+            if (search.trim()) {
+                params.set("search", search.trim());
+            }
+
+            const response = await axios.get(
+                `${API_URL}/content?${params.toString()}`
+            );
+
+            const items = response.data?.data || response.data || [];
+
+            setTagOptions(
+                items.map((el) => ({
+                    key: el._id,
+                    value: el.text,
+                    label: el.text,
+                }))
+            );
+        } catch (error) {
+            console.error("Error fetching tags:", error);
+            setTagOptions([]);
+        }
+    };
+
+    useEffect(() => {
+        fetchTagOptions("");
+    }, []);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            fetchTagOptions(tagSearch);
+        }, 400);
+
+        return () => clearTimeout(timer);
+    }, [tagSearch]);
+
+    // Existing tag ko select/deselect karne ke liye (jaise ArticleForm ke tag buttons)
+    const toggleTag = (tagValue) => {
+        setTags((prev) =>
+            prev.includes(tagValue)
+                ? prev.filter((t) => t !== tagValue)
+                : [...prev, tagValue]
         );
     };
 
-    const clearGallery = () => {
-        setGallery([]);
-    };
-
-    const addTag = () => {
-        const value = tagInput.trim();
-        if (!value) return;
-        if (tags.includes(value)) {
-            notify("Tag already exists.", "warning");
+    // Bilkul naya tag banana ho to (API me save hoke turant selected bhi ho jaata hai)
+    const addTag = async () => {
+        if (!tagInput.trim()) {
+            notify("Please enter a tag name.", "warning");
             return;
         }
-        setTags((prev) => [...prev, value]);
-        setTagInput("");
+
+        try {
+            const response = await axios.post(
+                `${API_URL}/content?id=${localStorage.getItem("id")}`,
+                { type: "tag", text: tagInput.trim() }
+            );
+
+            const newTag = {
+                value: response.data.text,
+                label: response.data.text,
+                key: response.data._id,
+            };
+
+            setTagOptions((prev) => [...prev, newTag]);
+            setTags((prev) => [...prev, newTag.value]);
+            setTagInput("");
+            notify("Tag added successfully!", "success");
+        } catch (error) {
+            console.error("Error adding tag:", error);
+            notify("Failed to add tag.", "error");
+        }
     };
 
     const removeTag = (tag) => {
@@ -167,6 +278,26 @@ export function useLiveNewsForm({
     const resetTags = () => {
         setTags([]);
     };
+
+    // ---------------- Publisher / role (Reported By/Publish By ke liye) ----------------
+    useEffect(() => {
+        const userId =
+            typeof window !== "undefined" ? localStorage.getItem("id") : null;
+        if (!userId) return;
+
+        axios
+            .get(`${API_URL}/user?id=${userId}`)
+            .then((user) => {
+                const u = user.data?.[0];
+                if (u) {
+                    setPublishBy(u.email || "");
+                    setRole(u.role || "");
+                    setUserCategoryData(u.selectedKeywords || []);
+                }
+            })
+            .catch((err) => console.error(err));
+    }, []);
+
     const showPreview = () => {
         if (!title.trim()) {
             notify("Please enter title", "warning");
@@ -187,18 +318,16 @@ export function useLiveNewsForm({
         setSubCategory("");
         setDescription("");
         setReportedBy("");
-        setPublishBy("");
         setStatus("online");
         setLive(true);
 
         setImage(null);
-        setGallery([]);
 
         setTags([]);
         setTagInput("");
+        setTagSearch("");
 
         setImageUpdated(false);
-        setGalleryUpdated(false);
 
         setPreviewOpen(false);
     };
@@ -208,7 +337,6 @@ export function useLiveNewsForm({
             setPublishLoading(true);
 
             const formData = new FormData();
-
             formData.append("title", title);
             formData.append("slug", slug);
             formData.append("category", category);
@@ -223,21 +351,13 @@ export function useLiveNewsForm({
             if (image instanceof File) {
                 formData.append("image", image);
             }
-
-            gallery.forEach((item) => {
-                if (item instanceof File) {
-                    formData.append("gallery", item);
-                }
-            });
-
+            console.log("===== FORM DATA =====");
+            for (const [key, value] of formData.entries()) {
+                console.log(key, value);
+            }
             await axios.post(
                 `${API_URL}/live-news`,
-                formData,
-                {
-                    headers: {
-                        "Content-Type": "multipart/form-data",
-                    },
-                }
+                formData
             );
 
             notify("Live News Created Successfully");
@@ -282,14 +402,6 @@ export function useLiveNewsForm({
                 formData.append("image", image);
             }
 
-            if (galleryUpdated) {
-                gallery.forEach((item) => {
-                    if (item instanceof File) {
-                        formData.append("gallery", item);
-                    }
-                });
-            }
-
             await axios.put(
                 `${API_URL}/live-news/${editId || id}`,
                 formData,
@@ -332,12 +444,10 @@ export function useLiveNewsForm({
             setSubCategory(data.subCategory || "");
             setDescription(data.description || "");
             setReportedBy(data.reportedBy || "");
-            setPublishBy(data.publishBy || "");
             setStatus(data.status || "online");
             setLive(Boolean(data.live));
 
             setImage(data.image || null);
-            setGallery(data.gallery || []);
 
             setTags(data.tags || []);
 
@@ -350,23 +460,17 @@ export function useLiveNewsForm({
     };
 
     useEffect(() => {
-        fetchCategories();
-
-        if (onEdit || shouldLoadForEdit) {
+        if (onEdit && shouldLoadForEdit) {
             loadLiveNews();
         }
-    }, []);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [onEdit, shouldLoadForEdit, editId, id]);
 
-    const fetchCategories = async () => {
-        try {
-            const res = await axios.get(`${API_URL}/common`);
-
-            setCategories(res.data.category || []);
-            setSubCategories(res.data.subCategory || []);
-        } catch (err) {
-            console.error(err);
-        }
-    };
+    // Category select role ke hisaab se (admin = sab categories, warna user ki apni list)
+    const categoriesToDisplay =
+        role === "admin"
+            ? categories
+            : userCategoryData.map((cat) => ({ value: cat, label: cat }));
 
     return {
         loading,
@@ -380,9 +484,10 @@ export function useLiveNewsForm({
         status,
         live,
         image,
-        gallery,
         tags,
         tagInput,
+        tagSearch,
+        tagOptions,
         showPreview,
         resetForm,
         setTitle,
@@ -395,10 +500,11 @@ export function useLiveNewsForm({
         setStatus,
         setLive,
         setImage,
-        setGallery,
         setTags,
         setTagInput,
+        setTagSearch,
         addTag,
+        toggleTag,
         removeTag,
         insertTweet,
         createSlug,
@@ -408,13 +514,11 @@ export function useLiveNewsForm({
         previewOpen,
         setPreviewOpen,
         setImageUpdated,
-        setGalleryUpdated,
         imageUpdated,
-        galleryUpdated,
         categories,
+        categoriesToDisplay,
         subCategories,
-        removeGalleryImage,
-        clearGallery,
+        role,
         resetTags,
         publishLoading,
         toastMessage,
