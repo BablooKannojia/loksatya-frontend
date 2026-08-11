@@ -21,7 +21,8 @@ import {
   FiImage,
   FiUserPlus,
   FiMail,
-  FiLogOut
+  FiLogOut,
+  FiRadio
 } from 'react-icons/fi';
 import Image from 'next/image';
 
@@ -36,7 +37,7 @@ export default function SideBar({ accessList = [] }) {
     { name: 'Top Stories', path: '/dashboard/topstories', icon: FiTrendingUp, key: 'topstories' },
     { name: 'Breaking News', path: '/dashboard/breakingnews', icon: FiZap, key: 'breakingnews' },
     { name: 'Flash News', path: '/dashboard/flashnews', icon: FiAlertCircle, key: 'flashnews' },
-    { name: 'Live News', path: '/dashboard/live-news', icon: FiAlertCircle, key: 'livenews' },
+    { name: 'Live News', path: '/dashboard/live-news', icon: FiRadio, key: 'livenews' },
     { name: 'Categories & Tags', path: '/dashboard/tags-category', icon: FiTag, key: 'categories' },
     { name: 'Live Stream', path: '/dashboard/live', icon: FiTv, key: 'live' },
     { name: 'Visual Stories', path: '/dashboard/stories', icon: FiFilm, key: 'stories' },

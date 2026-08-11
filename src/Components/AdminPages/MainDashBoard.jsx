@@ -11,6 +11,7 @@ import {
   FiTrendingUp, 
   FiPlusCircle, 
   FiRadio, 
+  FiTv, // Added FiTv for Live News
   FiUploadCloud,
   FiVideo,
   FiImage,
@@ -20,7 +21,7 @@ import {
   FiMessageSquare,
   FiAlertCircle,
   FiTag,
-  FiFilter
+  FiFilter,
 } from 'react-icons/fi';
 
 export default function MainDashBoard({ accessList = [] }) {
@@ -34,7 +35,7 @@ export default function MainDashBoard({ accessList = [] }) {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
-    console.log(stats);
+  console.log(stats);
 
   // 3. API से डैशबोर्ड डेटा फेच करना
   const fetchDashboardData = async () => {
@@ -43,7 +44,7 @@ export default function MainDashBoard({ accessList = [] }) {
       const response = await axios.get(
         `${API_URL}/dashboard?date=${startDate},${endDate}`
       );
-      console.log(`dashboard`, response)
+      console.log(`dashboard`, response);
       if (response.data?.success) {
         setStats(response.data.data);
       }
@@ -103,6 +104,14 @@ export default function MainDashBoard({ accessList = [] }) {
       color: "text-orange-400",
       bg: "bg-orange-500/10",
       border: "border-orange-500/20",
+    },
+    {
+      title: "Live News",
+      key: "liveNews",
+      icon: FiTv, // Updated Icon
+      color: "text-rose-400", // Updated Color
+      bg: "bg-rose-500/10",
+      border: "border-rose-500/20",
     },
     {
       title: "Categories & Tags",
