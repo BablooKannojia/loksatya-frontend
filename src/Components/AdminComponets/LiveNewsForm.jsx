@@ -371,7 +371,16 @@ export default function LiveNewsForm({
                         <JoditEditor
                             ref={f.editor}
                             value={f.description}
-                            config={f.joditConfig}
+                            // config={f.joditConfig}
+                            config={{
+                                ...f.joditConfig,
+                                height: 250,
+                                style: {
+                                    ...f.joditConfig.style,
+                                    background: "#ffffff",
+                                    color: "#111827",
+                                },
+                            }}
                             tabIndex={1}
                             onBlur={(content) =>
                                 f.setDescription(content)

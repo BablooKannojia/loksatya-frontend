@@ -150,7 +150,7 @@ export default function ManageLiveUpdates() {
                 </button>
 
                 <a
-                    href={`/live-news/${news.slug}`}
+                    href={`/dashboard/live-news/${news.slug}`}
                     target="_blank"
                     rel="noreferrer"
                     className="flex items-center gap-2 text-sm text-cyan-400 hover:text-cyan-300 transition"
@@ -215,7 +215,7 @@ export default function ManageLiveUpdates() {
                 </h2>
 
                 {updates.length === 0 ? (
-                    <p className="text-slate-500 text-sm">Abhi tak koi update nahi.</p>
+                    <p className="text-slate-500 text-sm">no update here.</p>
                 ) : (
                     <div className="relative border-l-2 border-slate-800 ml-2">
                         {updates.map((u) => (
@@ -250,8 +250,7 @@ export default function ManageLiveUpdates() {
                                     </p>
                                 )}
 
-                                <div
-                                    className="prose prose-invert prose-sm max-w-none text-slate-300"
+                                <div className="prose prose-invert prose-sm max-w-none text-slate-300"
                                     dangerouslySetInnerHTML={{ __html: u.description }}
                                 />
 
@@ -259,7 +258,7 @@ export default function ManageLiveUpdates() {
                                     <img
                                         src={u.image}
                                         alt=""
-                                        className="mt-3 rounded-lg max-h-64 object-cover"
+                                        className="w-50 mt-3 rounded-lg max-h-64 object-cover"
                                     />
                                 )}
 

@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { useParams } from "next/navigation";
-import { API_URL } from "../../../src/API";
+import { API_URL } from "../../../../src/API";
 
 function timeAgo(dateStr) {
     const diffMs = Date.now() - new Date(dateStr).getTime();
@@ -189,7 +189,7 @@ export default function PublicLiveNewsPage() {
                                         <img
                                             src={u.image}
                                             alt=""
-                                            className="mt-3 rounded-lg max-h-64 object-cover"
+                                            className="mt-3 w-50 rounded-lg max-h-64 object-cover"
                                         />
                                     )}
 

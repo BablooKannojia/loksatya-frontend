@@ -436,7 +436,7 @@ export function useLiveNewsForm({
                 `${API_URL}/live-news/${editId || id}`
             );
 
-            const data = res.data;
+            const data = res.data?.news;
 
             setTitle(data.title || "");
             setSlug(data.slug || "");

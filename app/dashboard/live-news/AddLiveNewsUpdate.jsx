@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import dynamic from "next/dynamic";
 import { API_URL } from "../../../src/API";
@@ -12,12 +12,32 @@ export default function AddLiveUpdate({ liveNewsId, onAdded }) {
     const [description, setDescription] = useState("");
     const [postedBy, setPostedBy] = useState("");
     const [image, setImage] = useState(null);
-    const [images, setImages] = useState([]);
     const [loading, setLoading] = useState(false);
 
+    // Login user ka email auto-fill karo (jaise UseLiveNewsForm me publishBy hota hai)
+    useEffect(() => {
+        const userId =
+            typeof window !== "undefined" ? localStorage.getItem("id") : null;
+        if (!userId) return;
+
+        axios
+            .get(`${API_URL}/user?id=${userId}`)
+            .then((res) => {
+                const u = res.data?.[0];
+                if (u) {
+                    setPostedBy(u.role || "");
+                }
+            })
+            .catch((err) => console.error(err));
+    }, []);
+
     const submit = async () => {
+        if (!title.trim()) {
+            alert("Title is required");
+            return;
+        }
         if (!description.trim()) {
-            alert("Description likhna zaroori hai");
+            alert("Description is required");
             return;
         }
         try {
@@ -27,20 +47,15 @@ export default function AddLiveUpdate({ liveNewsId, onAdded }) {
             formData.append("description", description);
             formData.append("postedBy", postedBy);
             if (image) formData.append("image", image);
-            images.forEach((img) => formData.append("images", img));
 
             const res = await axios.post(
                 `${API_URL}/live-news/${liveNewsId}/update`,
-                formData,
-                { headers: { "Content-Type": "multipart/form-data" } }
+                formData
             );
 
-            // Form reset
             setTitle("");
             setDescription("");
-            setPostedBy("");
             setImage(null);
-            setImages([]);
 
             if (onAdded) onAdded(res.data);
         } catch (err) {
@@ -54,59 +69,56 @@ export default function AddLiveUpdate({ liveNewsId, onAdded }) {
     return (
         <div className="rounded-2xl border border-slate-700 bg-slate-800/60 p-6 space-y-4">
             <h3 className="text-lg font-bold text-slate-100">
-                Naya Live Update Add Karo
+                Update Title
             </h3>
 
             <input
                 type="text"
-                placeholder="Update ka title (optional)"
+                placeholder="Update title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 className="w-full p-3 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 outline-none focus:border-indigo-500"
             />
 
-            <input
-                type="text"
-                placeholder="Posted by (reporter name)"
-                value={postedBy}
-                onChange={(e) => setPostedBy(e.target.value)}
-                className="w-full p-3 rounded-xl bg-slate-900 border border-slate-700 text-slate-100 outline-none focus:border-indigo-500"
-            />
+            <div>
+                <label className="block text-xs text-slate-400 mb-1">
+                    Posted By
+                </label>
+                <input
+                    type="text"
+                    readOnly
+                    value={postedBy}
+                    placeholder="Loading..."
+                    className="w-full p-3 rounded-xl bg-slate-900/40 border border-slate-800 text-slate-500 outline-none cursor-not-allowed"
+                />
+            </div>
 
             <div className="rounded-xl overflow-hidden border border-slate-700">
                 <JoditEditor
                     value={description}
-                    config={{ readonly: false, height: 250, placeholder: "Update likho..." }}
                     onBlur={(content) => setDescription(content)}
+                    config={{
+                        readonly: false,
+                        height: 220,
+                        placeholder: "Write update here...",
+                        style: {
+                            background: "#ffffff",
+                            color: "#111827",
+                        },
+                    }}
                 />
             </div>
 
-            <div className="flex gap-4">
-                <div>
-                    <label className="block text-xs text-slate-400 mb-1">
-                        Single Image
-                    </label>
-                    <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => setImage(e.target.files?.[0] || null)}
-                        className="text-sm text-slate-300"
-                    />
-                </div>
-                <div>
-                    <label className="block text-xs text-slate-400 mb-1">
-                        Multiple Images
-                    </label>
-                    <input
-                        type="file"
-                        accept="image/*"
-                        multiple
-                        onChange={(e) =>
-                            setImages(Array.from(e.target.files || []))
-                        }
-                        className="text-sm text-slate-300"
-                    />
-                </div>
+            <div>
+                <label className="block text-xs text-slate-400 mb-1">
+                    Image
+                </label>
+                <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setImage(e.target.files?.[0] || null)}
+                    className="text-sm text-slate-300"
+                />
             </div>
 
             <button

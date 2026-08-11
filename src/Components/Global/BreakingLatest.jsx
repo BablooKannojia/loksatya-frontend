@@ -90,7 +90,7 @@ const HomeHeroSection = ({
             {/* Vertical Stack with Minimum Height Safeguard */}
             <div className="flex flex-col gap-4 min-h-[440px]">
               {breakingNews && breakingNews.length > 2 ? (
-                breakingNews.slice(3, 6).map((data) => {
+                breakingNews.slice(0, 3).map((data) => {
                   const titleSlug = getArticleSlug(data);
                   if (!titleSlug) return null;
 

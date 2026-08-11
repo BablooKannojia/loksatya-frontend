@@ -69,6 +69,12 @@ export default function HeroSection({ sliderData = [] }) {
   };
 
   const handleNavigation = (article) => {
+    // LiveNews slider item ho to uske apne live-blog page pe le jao,
+    // normal Article ho to arts wale details page pe
+    if (article.contentType === "liveNews") {
+      router.push(`/live-news/${article.slug}`);
+      return;
+    }
     const formattedTitle = formatTitleForUrl(article.title);
     const slug = article.slug ? article.slug : formattedTitle;
     router.push(`/details/${slug}?id=${article._id}`);
@@ -111,7 +117,15 @@ export default function HeroSection({ sliderData = [] }) {
           />
           
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
-          
+
+          {/* Top-left LIVE badge — sirf tab jab ye slot ek LiveNews item ho */}
+          {mainArticle.contentType === "liveNews" && (
+            <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-10 flex items-center gap-1.5 bg-red-600 text-white text-[11px] sm:text-xs font-bold px-2.5 py-1 rounded-full shadow-lg">
+              <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+              LIVE
+            </div>
+          )}
+
           <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-5 z-10">
             <h2 className="text-white text-base sm:text-xl md:text-2xl font-bold leading-snug hover:text-red-400 transition-colors duration-200 line-clamp-3 md:line-clamp-none">
               {mainArticle.title}

@@ -14,7 +14,8 @@ import {
 import {
     FiSearch, FiCalendar, FiFilter, FiRefreshCw, FiEdit2,
     FiTrash2, FiAlertTriangle, FiImage, FiVideo, FiCheckCircle,
-    FiXCircle, FiClock, FiX, FiChevronDown, FiChevronUp, FiTag, FiUser
+    FiXCircle, FiClock, FiX, FiChevronDown, FiChevronUp, FiTag, FiUser,
+    FiExternalLink,
 } from "react-icons/fi";
 
 const defaultFilterObject = {
@@ -270,10 +271,16 @@ const Articles = () => {
         getPublishers();
     }, []);
 
-    const handleToggleStatus = async (articleId, currentStatus) => {
-        const newStatus = currentStatus === "online" ? "offline" : "online";
+    // ⚠️ LiveNews rows is table me sirf DEKHNE/slider-set karne ke liye hain —
+    // status/edit/delete sirf Article ke liye chalega, LiveNews ke liye Live News page use karo
+    const handleToggleStatus = async (article) => {
+        if (article.contentType === "liveNews") {
+            showToast("Live News ka status sirf Live News page se badlo", "error");
+            return;
+        }
+        const newStatus = article.status === "online" ? "offline" : "online";
         try {
-            await axios.put(`${API_URL}/article/${articleId}`, { status: newStatus, publishAt: null });
+            await axios.put(`${API_URL}/article/${article._id}`, { status: newStatus, publishAt: null });
             showToast(`Status set to ${newStatus.toUpperCase()}`);
             getAllArticles(pagination.current, pagination.pageSize, filterItemResponse);
         } catch (error) {
@@ -288,6 +295,13 @@ const Articles = () => {
     };
 
     const OnDelete = async () => {
+        // Safety net: ye modal ab LiveNews rows ke liye khulta hi nahi (button disabled hai),
+        // fir bhi ek extra check taaki galti se Article endpoint pe LiveNews id na chala jaaye
+        if (currentUser?.contentType === "liveNews") {
+            showToast("Live News sirf Live News page se delete karo", "error");
+            setIsModalDeleteOpen(false);
+            return;
+        }
         try {
             await axios.delete(`${API_URL}/article?id=${currentUser._id}`);
             showToast("Article Deleted");
@@ -465,12 +479,23 @@ const Articles = () => {
                                                             {/* Article Details */}
                                                             <td className="px-3 py-2.5 overflow-hidden">
                                                                 <div className="flex flex-col gap-0.5">
-                                                                    <span
-                                                                        className="font-semibold text-slate-900 dark:text-white truncate text-xs"
-                                                                        title={article.title}
-                                                                    >
-                                                                        {article.title || "-"}
-                                                                    </span>
+                                                                    <div className="flex items-center gap-1.5">
+                                                                        {article.contentType === "liveNews" && (
+                                                                            <span
+                                                                                title="Live News"
+                                                                                className="flex items-center gap-1 bg-red-600/15 text-red-500 border border-red-600/40 text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0"
+                                                                            >
+                                                                                <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                                                                                LIVE
+                                                                            </span>
+                                                                        )}
+                                                                        <span
+                                                                            className="font-semibold text-slate-900 dark:text-white truncate text-xs"
+                                                                            title={article.title}
+                                                                        >
+                                                                            {article.title || "-"}
+                                                                        </span>
+                                                                    </div>
                                                                     <div className="flex items-center gap-2 text-[10px] text-slate-400 font-mono">
                                                                         <span className="font-bold text-indigo-500 dark:text-indigo-400">
                                                                             #{serialNumber}
@@ -507,11 +532,13 @@ const Articles = () => {
                                                                     </span>
                                                                 ) : (
                                                                     <button
-                                                                        onClick={() => handleToggleStatus(article._id, article.status)}
+                                                                        onClick={() => handleToggleStatus(article)}
+                                                                        disabled={article.contentType === "liveNews"}
+                                                                        title={article.contentType === "liveNews" ? "Live News page se badlo" : "Toggle status"}
                                                                         className={`text-[10px] font-semibold px-2 py-0.5 rounded-full transition-colors ${isOnline
                                                                             ? "text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 dark:text-emerald-400"
                                                                             : "text-rose-600 bg-rose-50 dark:bg-rose-500/10 dark:text-rose-400"
-                                                                            }`}
+                                                                            } ${article.contentType === "liveNews" ? "opacity-50 cursor-not-allowed" : ""}`}
                                                                     >
                                                                         {isOnline ? "Online" : "Offline"}
                                                                     </button>
@@ -550,27 +577,42 @@ const Articles = () => {
                                                             {/* Actions*/}
                                                             <td className="px-3 py-2.5 text-right">
                                                                 <div className="flex items-center justify-end gap-1.5">
-                                                                    <button
-                                                                        className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 rounded transition-colors"
-                                                                        onClick={() => {
-                                                                            setOnEdit(true);
-                                                                            setId(article._id);
-                                                                            router.push("/dashboard/upload?edit=true");
-                                                                        }}
-                                                                        title="Edit Article"
-                                                                    >
-                                                                        <FiEdit2 size={13} />
-                                                                    </button>
-                                                                    <button
-                                                                        className="p-1 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 rounded transition-colors"
-                                                                        onClick={() => {
-                                                                            setCurrentUser(article);
-                                                                            setIsModalDeleteOpen(true);
-                                                                        }}
-                                                                        title="Delete Article"
-                                                                    >
-                                                                        <FiTrash2 size={13} />
-                                                                    </button>
+                                                                    {article.contentType === "liveNews" ? (
+                                                                        // LiveNews yahan se edit/delete nahi hoti — sirf Live News
+                                                                        // page pe le jaane wala link. Yahan se sirf slider order
+                                                                        // (drag-drop) aur status dikhna allowed hai.
+                                                                        <button
+                                                                            className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 hover:text-red-500 rounded transition-colors"
+                                                                            onClick={() => router.push("/dashboard/live-news")}
+                                                                            title="Manage in Live News page"
+                                                                        >
+                                                                            <FiExternalLink size={13} />
+                                                                        </button>
+                                                                    ) : (
+                                                                        <>
+                                                                            <button
+                                                                                className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 rounded transition-colors"
+                                                                                onClick={() => {
+                                                                                    setOnEdit(true);
+                                                                                    setId(article._id);
+                                                                                    router.push("/dashboard/upload?edit=true");
+                                                                                }}
+                                                                                title="Edit Article"
+                                                                            >
+                                                                                <FiEdit2 size={13} />
+                                                                            </button>
+                                                                            <button
+                                                                                className="p-1 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 rounded transition-colors"
+                                                                                onClick={() => {
+                                                                                    setCurrentUser(article);
+                                                                                    setIsModalDeleteOpen(true);
+                                                                                }}
+                                                                                title="Delete Article"
+                                                                            >
+                                                                                <FiTrash2 size={13} />
+                                                                            </button>
+                                                                        </>
+                                                                    )}
                                                                 </div>
                                                             </td>
                                                         </tr>
