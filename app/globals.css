@@ -1,23 +1,14 @@
-/* src/app/globals.css  (ya jahan bhi aapki main global CSS file hai) */
+/* src/app/globals.css */
 
 @import "tailwindcss";
 
-/*
-  Tailwind v4 mein config JS file mein nahi, CSS ke andar @theme block
-  mein hoti hai. Poori site ka brand red SIRF yahan se control hoga —
-  isse `bg-brand`, `text-brand`, `border-brand`, `bg-brand-light` jaisi
-  utility classes khud-ba-khud ban jaati hain.
-*/
 @theme {
   --color-brand: #ff0000;
   --color-brand-dark: #b3121a;
   --color-brand-light: #fff3f3;
-
   --color-ink: #161616;
   --color-ink-soft: #4a4a4a;
-
   --font-devanagari: "Noto Sans Devanagari", "Mukta", system-ui, sans-serif;
-
   --animate-livepulse: livepulse 1.8s infinite;
 }
 

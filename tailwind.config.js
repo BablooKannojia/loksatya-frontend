@@ -1,10 +1,4 @@
 // tailwind.config.js
-//
-// Agar project mein pehle se tailwind.config.js hai, to sirf yeh 3 cheezein
-// apni file ke `theme.extend` mein merge kar dena:
-//   1. colors.brand   → poori site mein red color sirf yahin se control hoga
-//   2. fontFamily.devanagari
-//   3. keyframes/animation.livepulse (top-strip wale dot ke liye)
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
@@ -17,9 +11,6 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // 👉 Poori site ka brand red sirf yahan se change hoga.
-        // Har jagah bg-brand / text-brand / border-brand use karna,
-        // hex code kahin bhi hardcode mat karna.
         brand: {
           DEFAULT: "#ff0000",
           dark: "#b3121a",

@@ -36,12 +36,10 @@ export default function RootLayout({ children }) {
 
       <body>
         <Providers>
-          {/* If not found Dashboard, Then Header show */}
           {!isDashboard && <Header />}
 
           {children}
 
-          {/* If not found Dashboard, Then Footer show */}
           {!isDashboard && <Footer />}
         </Providers>
       </body>
