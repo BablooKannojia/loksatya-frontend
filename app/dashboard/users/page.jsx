@@ -10,10 +10,7 @@ export const metadata = {
 };
 
 const Page = () => {
-  // return <UserList />
-  return (
-    <>Users page</>
-  )
+  return <UserList />
 };
 
 export default Page;

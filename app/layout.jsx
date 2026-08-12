@@ -11,7 +11,8 @@ import Footer from "../src/Components/Global/Footer";
 
 export default function RootLayout({ children }) {
   const pathname = usePathname();
-  const isDashboard = pathname.startsWith("/dashboard");
+  const isDashboard = pathname.startsWith("/dashboard") ||  pathname.startsWith("/visual-stories")
+                      || pathname.startsWith("/photo-gallery") 
 
   return (
     <html lang="hi">

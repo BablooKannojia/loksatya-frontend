@@ -9,6 +9,12 @@ const NewsLetter = () => {
   const [loading, setLoading] = useState(true);
   const [searchValue, setSearchValue] = useState("");
   const [filterType, setFilterType] = useState("all");
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [hasNext, setHasNext] = useState(false);
+  const [hasPrev, setHasPrev] = useState(false);
 
   // Custom Toast State
   const [toast, setToast] = useState({ show: false, message: "", type: "success" });
@@ -24,14 +30,26 @@ const NewsLetter = () => {
     }, 3500);
   };
 
-  const fetchSubscriptions = async () => {
+  const fetchSubscriptions = async (pageSize = page) => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/newsletter`);
+      const params = new URLSearchParams({
+        page: String(pageSize),
+        limit: String(limit)
+      })
+      if (searchValue.trim()) {
+        params.append("search", searchValue.trim());
+      }
+      const response = await fetch(`${API_URL}/newsletter?${params.toString()}`);
       const data = await response.json();
       if (response.ok) {
-        const subs = data.subscriptions || [];
+        const subs = data.data || [];
         setSubscriptions(subs);
+        setTotal(data.total);
+        setPage(data.currentPage);
+        setTotalPages(data.totalPages)
+        setHasNext(data.hasNext);
+        setHasPrev(data.hasPrev);
         setFilteredData(subs);
       } else {
         showNotification(data.message || "Failed to fetch subscriptions", "error");
@@ -44,24 +62,13 @@ const NewsLetter = () => {
   };
 
   useEffect(() => {
-    fetchSubscriptions();
-  }, []);
+    const timer = setTimeout(() => {
+      setPage(1);
+      fetchSubscriptions(1);
+    }, 500);
 
-  // Filter & Search Logic
-  useEffect(() => {
-    let updatedList = [...subscriptions];
-
-    if (searchValue.trim() !== "") {
-      const query = searchValue.toLowerCase();
-      updatedList = updatedList.filter(
-        (item) =>
-          item.email?.toLowerCase().includes(query) ||
-          item._id?.toLowerCase().includes(query)
-      );
-    }
-
-    setFilteredData(updatedList);
-  }, [searchValue, subscriptions, filterType]);
+    return () => clearTimeout(timer);
+  }, [searchValue]);
 
   const handleDelete = async (email) => {
     try {
@@ -76,9 +83,7 @@ const NewsLetter = () => {
       const data = await response.json();
       if (response.ok) {
         showNotification("Subscription deleted successfully!", "success");
-        setSubscriptions((prev) =>
-          prev.filter((subscription) => subscription.email !== email)
-        );
+        fetchSubscriptions(page);
       } else {
         showNotification(data.message || "Failed to delete subscription", "error");
       }
@@ -152,7 +157,7 @@ const NewsLetter = () => {
           {/* Refresh Action Button */}
           <div className="md:col-span-3 flex gap-3 md:mt-6">
             <button
-              onClick={fetchSubscriptions}
+              onClick={() => fetchSubscriptions(page)}
               className="w-full bg-[#059669] hover:bg-[#047857] text-white font-medium py-2.5 px-4 rounded-xl transition duration-150 shadow-lg shadow-emerald-950/40 text-sm flex items-center justify-center gap-2 cursor-pointer"
             >
               <span>Refresh</span>
@@ -168,10 +173,10 @@ const NewsLetter = () => {
         {/* Counter Header */}
         <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
           <span className="text-base font-bold text-slate-200">
-            Total Items ({filteredData.length})
+            Total Items ({total})
           </span>
           <span className="text-xs text-slate-500">
-            Page 1 of 1
+            Page {page} of {totalPages || 1}
           </span>
         </div>
 
@@ -189,18 +194,24 @@ const NewsLetter = () => {
             <table className="w-full text-left text-sm border-collapse">
               <thead>
                 <tr className="bg-[#0b1329]/60 text-slate-400 uppercase text-xs tracking-wider border-b border-slate-800 font-semibold">
+                  <th className="px-6 py-4">ID</th>
                   <th className="px-6 py-4">EMAIL</th>
                   <th className="px-6 py-4 w-[200px]">CREATED AT</th>
                   <th className="px-6 py-4 w-[120px] text-right">ACTIONS</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60">
-                {filteredData && filteredData.length > 0 ? (
-                  filteredData.map((row) => (
+                {subscriptions  && subscriptions.length > 0 ? (
+                  subscriptions.map((row, index) => (
                     <tr
                       key={row._id || row.email}
                       className="hover:bg-slate-800/40 transition-colors duration-150"
                     >
+                      {/* ID */}
+                      <td className="px-6 py-4 text-slate-200 font-medium">
+                         {(page - 1) * limit + index + 1}
+                      </td>
+
                       {/* Email */}
                       <td className="px-6 py-4 text-slate-200 font-medium">
                         {row.email}
@@ -234,6 +245,48 @@ const NewsLetter = () => {
                 )}
               </tbody>
             </table>
+              <div className="px-6 py-4 border-t border-slate-800 flex items-center justify-between">
+                <div className="text-xs text-slate-500">
+                  Showing{" "}
+                  {subscriptions.length > 0
+                    ? (page - 1) * limit + 1
+                    : 0}
+                  {" - "}
+                  {(page - 1) * limit + subscriptions.length}
+                  {" of "}
+                  {total}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    disabled={!hasPrev || loading}
+                    onClick={() => {
+                      const nextPage = page - 1;
+                      setPage(nextPage);
+                      fetchSubscriptions(nextPage);
+                    }}
+                    className="px-4 py-2 text-xs font-medium rounded-lg border border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    Previous
+                  </button>
+
+                  <div className="px-3 py-2 text-xs text-slate-400">
+                    {page} / {totalPages || 1}
+                  </div>
+
+                  <button
+                    disabled={!hasNext || loading}
+                    onClick={() => {
+                      const nextPage = page + 1;
+                      setPage(nextPage);
+                      fetchSubscriptions(nextPage);
+                    }}
+                    className="px-4 py-2 text-xs font-medium rounded-lg border border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
           </div>
         )}
       </div>

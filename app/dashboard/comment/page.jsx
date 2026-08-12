@@ -11,8 +11,5 @@ export const metadata = {
 };
 
 export default function page() {
-  // return <Comments />
-  return (
-    <>Comments page</>
-  )
+  return <Comments />
 }

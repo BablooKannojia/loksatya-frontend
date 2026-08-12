@@ -4,6 +4,8 @@ import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useCommonData } from "../../Context/CommonContext";
+import axios from "axios";
+import { API_URL } from "@/src/API";
 
 function categoryHref(text = "") {
   return `/category/${encodeURIComponent(text.trim())}`;
@@ -14,14 +16,24 @@ export default function Footer() {
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
 
-  const handleSubscribe = (e) => {
+  const handleSubscribe = async (e) => {
     e.preventDefault();
     if (!email) return;
-    
-    // यहाँ आप अपनी न्यूज़लेटर API कॉल जोड़ सकते हैं
-    setSubscribed(true);
-    setEmail("");
-    setTimeout(() => setSubscribed(false), 4000); // 4 सेकंड बाद मैसेज गायब
+
+    try {
+    const res = await axios.post(`${API_URL}/newsletter`,{
+      email: email.trim()
+    });
+    if (res.status === 201) {
+      setSubscribed(true);
+      setEmail("");
+      setTimeout(() => setSubscribed(false), 4000); // 4 सेकंड बाद मैसेज गायब
+    }
+  } catch(error) {
+    console.error("Subscription error:", error);
+    setSubscribed(false);
+  }
+  
   };
 
   // "होम" को सोशल/फ़ुटर लिंक्स के लिए डिफ़ॉल्ट रूप से अलग रख सकते हैं या पूरा मेनू दिखा सकते हैं
