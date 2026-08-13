@@ -3,12 +3,12 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { API_URL } from "../../../src/API";
-import { 
-  FiUploadCloud, 
-  FiTrash2, 
-  FiExternalLink, 
-  FiX, 
-  FiCheckCircle, 
+import {
+  FiUploadCloud,
+  FiTrash2,
+  FiExternalLink,
+  FiX,
+  FiCheckCircle,
   FiAlertCircle,
   FiInfo,
   FiPlus
@@ -32,6 +32,14 @@ const Ads = () => {
   const [previewImage, setPreviewImage] = useState(null);
   const [toast, setToast] = useState({ show: false, message: "", type: "info" });
 
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10);
+
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [hasNext, setHasNext] = useState(false);
+  const [hasPrev, setHasPrev] = useState(false);
+
   const showToast = (message, type = "info") => {
     setToast({ show: true, message, type });
     setTimeout(() => setToast({ show: false, message: "", type: "info" }), 3500);
@@ -41,23 +49,39 @@ const Ads = () => {
     setImpression((prevImpression) => prevImpression + 1);
   }, []);
 
-  const fetchAds = async () => {
+  const fetchAds = async (pageNumber = page) => {
     try {
-      const response = await axios.get(`${API_URL}/ads`);
-      if (response.data && Array.isArray(response.data)) {
-        const reversedData = [...response.data].reverse();
-        setUserData(reversedData);
-        if (reversedData.length > 0 && reversedData[0]?.noOfImpression) {
-          setNoOfImpression(reversedData[0].noOfImpression);
-        }
-      }
+      const response = await axios.get(`${API_URL}/ads`, {
+        params: {
+          page: pageNumber,
+          limit,
+        },
+      });
+
+      const result = response.data;
+
+      // Backend pagination response
+      const ads = result.data || [];
+
+      setUserData(ads);
+
+      setTotal(result.total || 0);
+      setPage(result.page || pageNumber);
+      setTotalPages(result.pages || 0);
+      setHasNext(result.hasNext || false);
+      setHasPrev(result.hasPrev || false);
+
     } catch (err) {
       console.error("Error fetching ads:", err);
+      showToast(
+        err.response?.data?.message || "Failed to fetch advertisements",
+        "error"
+      );
     }
   };
 
   useEffect(() => {
-    fetchAds();
+    fetchAds(page);
   }, []);
 
   const handleImageChange = (e) => {
@@ -86,7 +110,7 @@ const Ads = () => {
     try {
       // 1. Image Upload
       const imageRes = await axios.post(`${API_URL}/image`, formdata);
-      
+
       const userId = typeof window !== "undefined" ? localStorage.getItem("id") : "";
 
       // 2. Post Ad Details
@@ -102,7 +126,7 @@ const Ads = () => {
       });
 
       showToast("Your Ad was successfully Uploaded", "success");
-      
+
       // Reset Form
       setImg(null);
       setImgPreview(null);
@@ -111,7 +135,7 @@ const Ads = () => {
       setStartDate("");
       setEndDate("");
       setSide("");
-      fetchAds();
+      fetchAds(page);
     } catch (err) {
       showToast("Your Ad was not successfully Uploaded", "error");
       console.error("Upload error:", err);
@@ -124,15 +148,36 @@ const Ads = () => {
     try {
       const res = await axios.delete(`${API_URL}/ads_delete/${id}`);
 
-      if (res.data?.data?.status === 200) {
-        showToast(res.data.message || "Ad deleted successfully", "success");
+      console.log("Delete response:", res.data);
+
+      if (res.status === 200) {
+        showToast(
+          res.data?.message || "Ad deleted successfully",
+          "success"
+        );
+
+        // Agar current page ka last item delete hua
+        if (userData.length === 1 && page > 1) {
+          const previousPage = page - 1;
+
+          setPage(previousPage);
+          await fetchAds(previousPage);
+        } else {
+          await fetchAds(page);
+        }
       } else {
-        showToast(res.data?.message || "Failed to delete Ad", "error");
+        showToast(
+          res.data?.message || "Failed to delete Ad",
+          "error"
+        );
       }
-      fetchAds();
     } catch (error) {
-      console.error(error);
-      showToast(error.response?.data?.message || "Error deleting ad", "error");
+      console.error("Delete error:", error);
+
+      showToast(
+        error.response?.data?.message || "Error deleting ad",
+        "error"
+      );
     }
   };
 
@@ -140,9 +185,13 @@ const Ads = () => {
     const newStatus = !currentStatus;
 
     try {
-      await axios.put(`${API_URL}/ads/${adId}`, { active: newStatus });
+      await axios.put(`${API_URL}/ads/${adId}`, {
+        active: newStatus,
+      });
+
       showToast("Status Changed", "success");
-      fetchAds();
+
+      fetchAds(page);
     } catch (error) {
       console.error(error);
       showToast("Failed to update status", "error");
@@ -155,10 +204,10 @@ const Ads = () => {
     return isNaN(fullDate.getTime())
       ? "N/A"
       : fullDate.toLocaleDateString("en-US", {
-          day: "numeric",
-          month: "short",
-          year: "numeric",
-        });
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      });
   };
 
   return (
@@ -211,7 +260,7 @@ const Ads = () => {
       {/* Form Card */}
       <div className="bg-[#0e1626] border border-[#1b2a45] rounded-xl p-4 md:p-6 mb-6 shadow-xl w-full box-border">
         <div className="flex flex-col xl:flex-row gap-6">
-          
+
           {/* Left: Upload Box */}
           <div className="w-full xl:w-64 shrink-0">
             <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
@@ -350,7 +399,7 @@ const Ads = () => {
       <div className="bg-[#0e1626] border border-[#1b2a45] rounded-xl shadow-xl overflow-hidden w-full">
         <div className="p-4 border-b border-[#1b2a45]">
           <h2 className="text-sm md:text-base font-bold text-white tracking-wide">
-            Total Advertisements ({userData.length})
+            Total Advertisements ({total})
           </h2>
         </div>
 
@@ -422,11 +471,10 @@ const Ads = () => {
                     <td className="py-3 px-3">
                       <div className="flex flex-col items-start gap-1">
                         <span
-                          className={`inline-block px-2 py-0.5 text-[10px] font-bold rounded-full ${
-                            ad.active
-                              ? "bg-emerald-950/80 text-emerald-400 border border-emerald-800"
-                              : "bg-rose-950/80 text-rose-400 border border-rose-800"
-                          }`}
+                          className={`inline-block px-2 py-0.5 text-[10px] font-bold rounded-full ${ad.active
+                            ? "bg-emerald-950/80 text-emerald-400 border border-emerald-800"
+                            : "bg-rose-950/80 text-rose-400 border border-rose-800"
+                            }`}
                         >
                           {ad.active ? "ONLINE" : "OFFLINE"}
                         </span>
@@ -452,6 +500,51 @@ const Ads = () => {
               )}
             </tbody>
           </table>
+          <div className="px-4 py-4 border-t border-[#1b2a45] flex flex-col sm:flex-row items-center justify-between gap-3">
+
+            <div className="text-xs text-slate-500">
+              Showing{" "}
+              {userData.length > 0
+                ? (page - 1) * limit + 1
+                : 0}
+              {" - "}
+              {(page - 1) * limit + userData.length}
+              {" of "}
+              {total}
+            </div>
+
+            <div className="flex items-center gap-2">
+
+              <button
+                disabled={!hasPrev}
+                onClick={() => {
+                  const previousPage = page - 1;
+                  setPage(previousPage);
+                  fetchAds(previousPage);
+                }}
+                className="px-4 py-2 text-xs font-medium rounded-lg border border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+
+              <span className="px-3 py-2 text-xs text-slate-400">
+                {page} / {totalPages || 1}
+              </span>
+
+              <button
+                disabled={!hasNext}
+                onClick={() => {
+                  const nextPage = page + 1;
+                  setPage(nextPage);
+                  fetchAds(nextPage);
+                }}
+                className="px-4 py-2 text-xs font-medium rounded-lg border border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+
+            </div>
+          </div>
         </div>
       </div>
     </div>

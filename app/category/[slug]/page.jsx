@@ -1,17 +1,10 @@
+import { API_URL } from "../../../src/API";
 import CategoryPage from "./CategoryData";
 
 export async function generateMetadata({ params }) {
   const { slug } = await params;
-  const api = process.env.NEXT_PUBLIC_API_URL;
 
-  if (!api) {
-    return {
-      title: "Loksatya",
-      description: "Latest News",
-    };
-  }
-
-  const res = await fetch(`${api}/api/category/${encodeURIComponent(slug)}`, {
+  const res = await fetch(`${API_URL}/api/category/${encodeURIComponent(slug)}`, {
     cache: "no-store",
   });
 
