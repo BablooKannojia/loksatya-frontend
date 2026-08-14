@@ -5,14 +5,14 @@ import axios from "axios";
 import { useRouter, useSearchParams } from "next/navigation";
 import { API_URL } from "../../../src/API";
 import { OnEdit as onEditContext } from "../../../src/Context/index";
-import { 
-  FaTrashAlt, 
-  FaCloudUploadAlt, 
-  FaEdit, 
-  FaRegTrashAlt, 
-  FaTimes, 
-  FaCheckCircle, 
-  FaExclamationCircle 
+import {
+  FaTrashAlt,
+  FaCloudUploadAlt,
+  FaEdit,
+  FaRegTrashAlt,
+  FaTimes,
+  FaCheckCircle,
+  FaExclamationCircle
 } from "react-icons/fa";
 
 const Stories = () => {
@@ -30,7 +30,6 @@ const Stories = () => {
   const [filterItem, setFilterItem] = useState("id");
   const [filterItemResponse, setFilterItemResponse] = useState("");
   const [editPeriority, setEditPeriority] = useState(false);
-  const [allPhotos, setAllPhoto] = useState([]);
   const [currentPhoto, setCurrentPhoto] = useState({});
   const [isModalDeleteOpen, setIsModalDeleteOpen] = useState(false);
 
@@ -41,6 +40,14 @@ const Stories = () => {
 
   const [imgTexts, setImgTexts] = useState({});
   const [thumbnail, setThumbnail] = useState({});
+  const [stories, setStories] = useState([]);
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [hasNext, setHasNext] = useState(false);
+  const [hasPrev, setHasPrev] = useState(false);
+
 
   // Custom Toast State
   const [toast, setToast] = useState({ show: false, message: "", type: "info" });
@@ -73,39 +80,77 @@ const Stories = () => {
     }
   }, [onEdit, edit, id]);
 
-  const fetchAllPhotos = async () => {
+  const fetchStories = async (pageNumber = 1) => {
     try {
-      const response = await fetch(`${API_URL}/story`);
-      const data = await response.json();
-      const storiesArray = Array.isArray(data) ? data : (data.data || []);
-      setAllPhoto(storiesArray);
+      const response = await axios.get(
+        `${API_URL}/story?paginate=true&page=${pageNumber}&limit=${limit}`
+      );
+      const data = response.data;
+      if (data.success) {
+        setStories(data.data || []);
+
+        setTotal(data.pagination?.total);
+        setPage(data.pagination?.page);
+        setTotalPages(data.pagination?.totalPages);
+        setHasNext(data.pagination.hasNext);
+        setHasPrev(data.pagination.hasPrev);
+      }
     } catch (error) {
       console.error("Error fetching photo:", error);
       showToast("Failed to fetch photos. Please try again.", "error");
+    } finally {
+      setLoading(false)
     }
   };
 
   useEffect(() => {
-    fetchAllPhotos();
+    fetchStories(1);
   }, []);
 
-  const onFilter = () => {
-    axios
-      .get(`${API_URL}/story?${filterItem}=${filterItemResponse}`)
-      .then((poll) => {
-        const storiesArray = Array.isArray(poll.data) ? poll.data : (poll.data?.data || []);
-        setAllPhoto(storiesArray);
-      })
-      .catch((err) => {
-        console.error(err);
-        showToast("Error in Filtering", "error");
-      });
+  const onFilter = async () => {
+    if (!filterItemResponse.trim()) {
+      fetchStories(1);
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      let query = "";
+
+      if (filterItem === "id") {
+        query = `id=${encodeURIComponent(filterItemResponse.trim())}`;
+      } else {
+        query = `title=${encodeURIComponent(filterItemResponse.trim())}`;
+      }
+
+      const response = await axios.get(
+        `${API_URL}/story?paginate=true&page=1&limit=${limit}&${query}`
+      );
+
+      const data = response.data;
+
+      if (data.success) {
+        setStories(data.data || []);
+
+        setTotal(data.pagination?.total || 0);
+        setPage(data.pagination?.page || 1);
+        setTotalPages(data.pagination?.totalPages || 0);
+        setHasNext(data.pagination?.hasNext || false);
+        setHasPrev(data.pagination?.hasPrev || false);
+      }
+    } catch (error) {
+      console.error("Filter error:", error);
+      showToast("Error in Filtering", "error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const onReset = () => {
     setFilterItem("id");
     setFilterItemResponse("");
-    fetchAllPhotos();
+    fetchStories(page);
   };
 
   const showVerifyModal = () => {
@@ -191,7 +236,7 @@ const Stories = () => {
 
       showToast("Your Photo was successfully uploaded", "success");
       setTitle("");
-      fetchAllPhotos();
+      fetchStories(page);
       setImgs([]);
       setIsVerifyModalOpen(false);
       setOnEdit(false);
@@ -209,7 +254,7 @@ const Stories = () => {
       setImgs([]);
       setTitle("");
       setIsVerifyModalOpen(false);
-    } fontFinally: {
+    } finally {
       setLoading(false);
     }
   };
@@ -242,7 +287,7 @@ const Stories = () => {
 
       showToast("Your Photo was successfully updated", "success");
       setTitle("");
-      fetchAllPhotos();
+      fetchStories(page);
       setEditImgs([]);
       setImgs([]);
       setIsVerifyModalOpen(false);
@@ -273,7 +318,7 @@ const Stories = () => {
       .then(() => {
         showToast("Story has Successfully Deleted", "success");
         setCurrentPhoto({});
-        fetchAllPhotos();
+        fetchStories(page);
         setIsModalDeleteOpen(false);
       })
       .catch((err) => {
@@ -296,7 +341,7 @@ const Stories = () => {
       .put(`${API_URL}/story/${photoId}`, { status: newStatus })
       .then(() => {
         showToast("Status Changed", "success");
-        fetchAllPhotos();
+        fetchStories(page);
       })
       .catch((error) => {
         console.error("Error updating status", error);
@@ -331,7 +376,7 @@ const Stories = () => {
       {/* Main Upload Box */}
       <div className="bg-[#0c1322] border border-[#1a263d] rounded-2xl p-5 md:p-7 mb-8 shadow-2xl w-full box-border">
         <div className="flex flex-col gap-6">
-          
+
           {/* File Upload Section */}
           <div className="w-full flex flex-col gap-4">
             <input
@@ -359,7 +404,7 @@ const Stories = () => {
             {/* Selected / Existing Images Container */}
             {(imgs.length > 0 || editImgs.length > 0) && (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 pt-2">
-                
+
                 {/* NEW IMAGES PREVIEW */}
                 {imgs.length > 0 &&
                   imgs.map((img, index) => (
@@ -547,14 +592,14 @@ const Stories = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#1a263d]/60 text-xs md:text-sm">
-              {allPhotos.length === 0 ? (
+              {stories.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="py-12 text-center text-slate-500 font-medium">
                     No visual story records found.
                   </td>
                 </tr>
               ) : (
-                allPhotos.map((story) => (
+                stories.map((story) => (
                   <tr key={story._id} className="hover:bg-[#10192b] transition-colors">
                     <td className="py-3.5 px-5 font-mono text-xs text-slate-400 max-w-[90px] truncate">
                       {story._id}
@@ -583,11 +628,10 @@ const Stories = () => {
                     <td className="py-3.5 px-5">
                       <div className="flex flex-col items-start gap-1">
                         <span
-                          className={`inline-block px-2.5 py-0.5 text-[10px] font-bold rounded-full ${
-                            story.status
+                          className={`inline-block px-2.5 py-0.5 text-[10px] font-bold rounded-full ${story.status
                               ? "bg-emerald-950/80 text-emerald-400 border border-emerald-800/80"
                               : "bg-rose-950/80 text-rose-400 border border-rose-800/80"
-                          }`}
+                            }`}
                         >
                           {story.status ? "ONLINE" : "OFFLINE"}
                         </span>
@@ -624,6 +668,47 @@ const Stories = () => {
               )}
             </tbody>
           </table>
+          {totalPages > 0 && (
+            <div className="flex items-center justify-center gap-3 px-5 py-4 border-t border-[#1a263d] bg-[#080d18]">
+
+              {/* Previous */}
+              <button
+                disabled={!hasPrev || loading}
+                onClick={() => fetchStories(page - 1)}
+                className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all ${!hasPrev || loading
+                    ? "bg-slate-800/50 text-slate-600 cursor-not-allowed"
+                    : "bg-[#111a2d] text-slate-300 hover:bg-[#00d2ff] hover:text-[#050b14]"
+                  }`}
+              >
+                ← Previous
+              </button>
+
+              {/* Current Page */}
+              <div className="px-4 py-2 bg-[#111a2d] border border-[#1a263d] rounded-lg text-xs font-semibold text-slate-300">
+                Page{" "}
+                <span className="text-[#00d2ff]">
+                  {page}
+                </span>{" "}
+                of{" "}
+                <span className="text-slate-200">
+                  {totalPages}
+                </span>
+              </div>
+
+              {/* Next */}
+              <button
+                disabled={!hasNext || loading}
+                onClick={() => fetchStories(page + 1)}
+                className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all ${!hasNext || loading
+                    ? "bg-slate-800/50 text-slate-600 cursor-not-allowed"
+                    : "bg-[#111a2d] text-slate-300 hover:bg-[#00d2ff] hover:text-[#050b14]"
+                  }`}
+              >
+                Next →
+              </button>
+
+            </div>
+          )}
         </div>
       </div>
 
