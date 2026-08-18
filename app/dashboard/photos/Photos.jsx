@@ -12,7 +12,9 @@ import {
   FaRegTrashAlt,
   FaTimes,
   FaCheckCircle,
-  FaExclamationCircle
+  FaExclamationCircle,
+  FaChevronLeft,
+  FaChevronRight
 } from "react-icons/fa";
 
 const Photos = () => {
@@ -46,6 +48,18 @@ const Photos = () => {
   const [editPeriority, setEditPeriority] = useState(null);
   const [thumbnail, setThumbnail] = useState({});
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [pagination, setPagination] = useState({
+    total: 0,
+    page: 1,
+    limit: 10,
+    totalPages: 1,
+    hasNext: false,
+    hasPrev: false,
+  });
+
   // Toast notification state
   const [toast, setToast] = useState({ show: false, message: "", type: "info" });
 
@@ -75,15 +89,20 @@ const Photos = () => {
     }
   }, [onEdit, edit, id]);
 
-  const fetchAllPhotos = async () => {
+  const fetchAllPhotos = async (page = currentPage, limit = itemsPerPage) => {
     try {
-      const response = await fetch(`${API_URL}/photo`);
+      const response = await fetch(
+        `${API_URL}/photo?paginate=true&page=${page}&limit=${limit}`
+      );
       const result = await response.json();
-      const photosArray = Array.isArray(result) 
-        ? result 
-        : (Array.isArray(result.data) ? result.data : []);
+      const photosArray = Array.isArray(result?.data) ? result.data : [];
 
       setAllPhoto(photosArray);
+
+      if (result?.pagination) {
+        setPagination(result.pagination);
+        setCurrentPage(result.pagination.page);
+      }
     } catch (error) {
       console.error("Error fetching photo:", error);
       showToast("Failed to fetch photos. Please try again.", "error");
@@ -91,18 +110,22 @@ const Photos = () => {
   };
 
   useEffect(() => {
-    fetchAllPhotos();
-  }, []);
+    fetchAllPhotos(1, itemsPerPage);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [itemsPerPage]);
 
   const onFilter = () => {
     axios
-      .get(`${API_URL}/photo?${filterItem}=${filterItemResponse}`)
+      .get(
+        `${API_URL}/photo?${filterItem}=${filterItemResponse}&paginate=true&page=1&limit=${itemsPerPage}`
+      )
       .then((res) => {
-        const photosArray = Array.isArray(res.data) 
-          ? res.data 
-          : (Array.isArray(res.data?.data) ? res.data.data : []);
-
+        const photosArray = Array.isArray(res.data?.data) ? res.data.data : [];
         setAllPhoto(photosArray);
+        if (res.data?.pagination) {
+          setPagination(res.data.pagination);
+          setCurrentPage(res.data.pagination.page);
+        }
       })
       .catch((err) => {
         console.error(err);
@@ -113,7 +136,21 @@ const Photos = () => {
   const onReset = () => {
     setFilterItem("id");
     setFilterItemResponse("");
-    fetchAllPhotos();
+    setCurrentPage(1);
+    fetchAllPhotos(1, itemsPerPage);
+  };
+
+  const goToPage = (page) => {
+    if (page < 1 || page > pagination.totalPages) return;
+    setCurrentPage(page);
+    fetchAllPhotos(page, itemsPerPage);
+  };
+
+  const handleItemsPerPageChange = (e) => {
+    const newLimit = Number(e.target.value);
+    setItemsPerPage(newLimit);
+    setCurrentPage(1);
+    fetchAllPhotos(1, newLimit);
   };
 
   useEffect(() => {
@@ -187,7 +224,8 @@ const Photos = () => {
 
       showToast("Your Photo was successfully uploaded", "success");
       setIsVerifyModalOpen(false);
-      fetchAllPhotos();
+      fetchAllPhotos(1, itemsPerPage);
+      setCurrentPage(1);
       setPriority(false);
       setTitle("");
       setImgs([]);
@@ -233,7 +271,7 @@ const Photos = () => {
 
       showToast("Your Photo was successfully updated", "success");
       setIsVerifyModalOpen(false);
-      fetchAllPhotos();
+      fetchAllPhotos(currentPage, itemsPerPage);
       setTitle("");
       setPriority(false);
       setEditImgs([]);
@@ -258,7 +296,7 @@ const Photos = () => {
       .put(`${API_URL}/photo/${photoId}`, { status: newStatus })
       .then(() => {
         showToast("Status Changed", "success");
-        fetchAllPhotos();
+        fetchAllPhotos(currentPage, itemsPerPage);
       })
       .catch((error) => {
         console.error("Error updating status", error);
@@ -278,7 +316,10 @@ const Photos = () => {
         showToast("Photo has Successfully Deleted", "success");
         setCurrentPhoto({});
         setIsModalDeleteOpen(false);
-        fetchAllPhotos();
+        // Agar current page ka last item delete hua ho to pichle page pe chale jao
+        const isLastItemOnPage = allPhotos.length === 1 && currentPage > 1;
+        const targetPage = isLastItemOnPage ? currentPage - 1 : currentPage;
+        fetchAllPhotos(targetPage, itemsPerPage);
       })
       .catch((err) => {
         console.error(err);
@@ -286,6 +327,25 @@ const Photos = () => {
         setCurrentPhoto({});
         setIsModalDeleteOpen(false);
       });
+  };
+
+  // Page numbers ka array banane ke liye helper (max 5 buttons dikhaye)
+  const getPageNumbers = () => {
+    const { totalPages } = pagination;
+    const pages = [];
+    const maxButtons = 5;
+
+    if (totalPages <= maxButtons) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      let start = Math.max(1, currentPage - 2);
+      let end = Math.min(totalPages, start + maxButtons - 1);
+      if (end - start < maxButtons - 1) {
+        start = Math.max(1, end - maxButtons + 1);
+      }
+      for (let i = start; i <= end; i++) pages.push(i);
+    }
+    return pages;
   };
 
   return (
@@ -558,7 +618,7 @@ const Photos = () => {
       </div>
 
       {/* Table Section */}
-      <div className="bg-[#0c1322] border border-[#1a263d] rounded-2xl shadow-2xl overflow-hidden w-full box-border mb-10">
+      <div className="bg-[#0c1322] border border-[#1a263d] rounded-2xl shadow-2xl overflow-hidden w-full box-border mb-4">
         <div className="overflow-x-auto w-full">
           <table className="w-full text-left border-collapse min-w-[650px]">
             <thead>
@@ -648,6 +708,62 @@ const Photos = () => {
               )}
             </tbody>
           </table>
+        </div>
+      </div>
+
+      {/* Pagination Controls */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-10 bg-[#0c1322] border border-[#1a263d] p-4 rounded-2xl w-full box-border shadow-md">
+        <div className="flex items-center gap-3 text-xs text-slate-400">
+          <span>
+            Showing page <span className="text-slate-200 font-semibold">{pagination.page}</span> of{" "}
+            <span className="text-slate-200 font-semibold">{pagination.totalPages || 1}</span>{" "}
+            ({pagination.total} total records)
+          </span>
+          <div className="flex items-center gap-2">
+            <span>Per page:</span>
+            <select
+              value={itemsPerPage}
+              onChange={handleItemsPerPageChange}
+              className="px-2 py-1 bg-[#070b12] border border-slate-700/80 rounded-lg text-xs text-slate-200 focus:outline-none focus:border-[#00d2ff] cursor-pointer"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => goToPage(currentPage - 1)}
+            disabled={!pagination.hasPrev}
+            className="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-700/80 text-slate-300 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+          >
+            <FaChevronLeft size={11} />
+          </button>
+
+          {getPageNumbers().map((num) => (
+            <button
+              key={num}
+              onClick={() => goToPage(num)}
+              className={`w-8 h-8 flex items-center justify-center rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+                num === currentPage
+                  ? "bg-[#00d2ff] text-[#050b14]"
+                  : "border border-slate-700/80 text-slate-300 hover:bg-slate-800"
+              }`}
+            >
+              {num}
+            </button>
+          ))}
+
+          <button
+            onClick={() => goToPage(currentPage + 1)}
+            disabled={!pagination.hasNext}
+            className="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-700/80 text-slate-300 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+          >
+            <FaChevronRight size={11} />
+          </button>
         </div>
       </div>
 
