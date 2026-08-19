@@ -214,9 +214,11 @@ const TagsCategory = () => {
 
         setLoading(true);
         try {
-            const res = await axios.delete(
-                `${API_URL}/delete_content/${deleteItem._id}`
-            );
+            const isSub = deleteItem.type === "sub";
+
+            const res = isSub
+                ? await axios.delete(`${API_URL}/subcategory/${deleteItem._id}`)
+                : await axios.delete(`${API_URL}/delete_content/${deleteItem._id}`);
 
             if (res.data?.status === 200 || res.status === 200) {
                 notify(res.data?.message || "Deleted successfully!", "success");
@@ -226,7 +228,7 @@ const TagsCategory = () => {
             }
         } catch (error) {
             console.error("Delete Error:", error);
-            notify("Error deleting item", "error");
+            notify(error?.response?.data?.message || "Error deleting item", "error");
         } finally {
             setLoading(false);
             setDeleteItem(null);
