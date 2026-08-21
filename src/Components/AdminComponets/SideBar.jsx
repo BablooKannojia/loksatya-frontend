@@ -31,23 +31,23 @@ export default function SideBar({ accessList = [] }) {
 
   const menuItems = [
     { name: 'Dashboard', path: '/dashboard', icon: FiGrid, key: 'dashboard' },
-    { name: 'Users', path: '/dashboard/users', icon: FiUsers, key: 'users' },
-    { name: 'Upload', path: '/dashboard/upload', icon: FiUploadCloud, key: 'upload' },
     { name: 'Articles', path: '/dashboard/articles', icon: FiFileText, key: 'articles' },
-    { name: 'Top Stories', path: '/dashboard/topstories', icon: FiTrendingUp, key: 'topstories' },
+    { name: 'Upload', path: '/dashboard/upload', icon: FiUploadCloud, key: 'upload' },
     { name: 'Breaking News', path: '/dashboard/breakingnews', icon: FiZap, key: 'breakingnews' },
+    { name: 'Top Stories', path: '/dashboard/topstories', icon: FiTrendingUp, key: 'topstories' },
     { name: 'Flash News', path: '/dashboard/flashnews', icon: FiAlertCircle, key: 'flashnews' },
     { name: 'Live News', path: '/dashboard/live-news', icon: FiRadio, key: 'livenews' },
+    { name: 'Users', path: '/dashboard/users', icon: FiUsers, key: 'users' },
     { name: 'Categories & Tags', path: '/dashboard/tags-category', icon: FiTag, key: 'categories' },
-    { name: 'Live Stream', path: '/dashboard/live', icon: FiTv, key: 'live' },
     { name: 'Visual Stories', path: '/dashboard/stories', icon: FiFilm, key: 'stories' },
     { name: 'Videos', path: '/dashboard/videos', icon: FiVideo, key: 'videos' },
     { name: 'Photos', path: '/dashboard/photos', icon: FiImage, key: 'photos' },
-    { name: 'Create User', path: '/dashboard/createuser', icon: FiUserPlus, key: 'creatuser' },
+    { name: 'Live Stream', path: '/dashboard/live', icon: FiTv, key: 'live' },
     { name: 'Ads Management', path: '/dashboard/ads', icon: FiDollarSign, key: 'ads' },
     { name: 'Polls', path: '/dashboard/poll', icon: FiBarChart2, key: 'poll' },
     { name: 'Comments', path: '/dashboard/comment', icon: FiMessageSquare, key: 'comment' },
     { name: 'Newsletter', path: '/dashboard/newsletter', icon: FiMail, key: 'newsletter' },
+    { name: 'Create User', path: '/dashboard/createuser', icon: FiUserPlus, key: 'creatuser' },
     { name: 'Report', path: '/dashboard/report', icon: FiFileText, key: 'report' },
   ];
 
