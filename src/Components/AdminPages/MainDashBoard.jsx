@@ -11,7 +11,7 @@ import {
   FiTrendingUp, 
   FiPlusCircle, 
   FiRadio, 
-  FiTv, // Added FiTv for Live News
+  FiTv,
   FiUploadCloud,
   FiVideo,
   FiImage,
@@ -25,15 +25,12 @@ import {
 } from 'react-icons/fi';
 
 export default function MainDashBoard({ accessList = [] }) {
-  // 1. डेट फ़िल्टर स्टेट (Default: 2026-07-01 to 2026-07-31)
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   
-  // 2. एपीआई डेटा और लोडिंग स्टेट
   const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true)
 
-  // 3. API से डैशबोर्ड डेटा फेच करना
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
@@ -103,8 +100,8 @@ export default function MainDashBoard({ accessList = [] }) {
     {
       title: "Live News",
       key: "livenews",
-      icon: FiTv, // Updated Icon
-      color: "text-rose-400", // Updated Color
+      icon: FiTv,
+      color: "text-rose-400",
       bg: "bg-rose-500/10",
       border: "border-rose-500/20",
     },
