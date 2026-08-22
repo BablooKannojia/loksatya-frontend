@@ -12,10 +12,9 @@ import {
 } from "@hello-pangea/dnd";
 
 import {
-    FiSearch, FiCalendar, FiFilter, FiRefreshCw, FiEdit2,
-    FiTrash2, FiAlertTriangle, FiImage, FiVideo, FiCheckCircle,
-    FiXCircle, FiClock, FiX, FiChevronDown, FiChevronUp, FiTag, FiUser,
-    FiExternalLink,
+    FiFilter, FiRefreshCw, FiEdit2,
+    FiTrash2, FiAlertTriangle, FiVideo, FiCheckCircle,
+    FiXCircle, FiX, FiChevronDown, FiChevronUp, FiExternalLink,
 } from "react-icons/fi";
 
 const defaultFilterObject = {
