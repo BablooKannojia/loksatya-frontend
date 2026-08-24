@@ -126,7 +126,7 @@ export default function TopStoriesClient() {
                 return (
                   <Link
                     key={item._id}
-                    href={`/details/${itemSlug}?id=${item._id}`}
+                    href={`/details/${itemSlug}`}
                     className="grid grid-cols-12 gap-3.5 items-start group cursor-pointer border-b border-gray-50 pb-4 last:border-none last:pb-0"
                   >
                     {/* Image Side */}

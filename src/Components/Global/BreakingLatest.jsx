@@ -49,7 +49,7 @@ const HomeHeroSection = ({
                     <div key={data?._id} className="w-full min-h-[210px]">
                       <NewsCard 
                         data={data} 
-                        onPress={() => navigation(`/details/${titleSlug}?id=${data._id}`)} 
+                        onPress={() => navigation(`/details/${titleSlug}`)} 
                       />
                     </div>
                   );
@@ -98,7 +98,7 @@ const HomeHeroSection = ({
                     <div key={data?._id} className="w-full min-h-[210px]">
                       <NewsCard 
                         data={data} 
-                        onPress={() => navigation(`/details/${titleSlug}?id=${data._id}`)} 
+                        onPress={() => navigation(`/details/${titleSlug}`)} 
                       />
                     </div>
                   );

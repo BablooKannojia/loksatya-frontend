@@ -33,7 +33,7 @@ export default function SidebarLatestNews() {
           return (
             <Link
               key={item._id}
-              href={`/details/${itemSlug}?id=${item._id}`}
+              href={`/details/${itemSlug}`}
               className="grid grid-cols-12 gap-3.5 items-center group cursor-pointer"
             >
               {/* Image Side (5 columns) */}

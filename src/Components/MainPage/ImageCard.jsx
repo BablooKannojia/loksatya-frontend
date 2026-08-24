@@ -23,7 +23,7 @@ const ImageCard = ({
     if (fromVStrories) {
       console.log("Visual story");
     } else {
-      router.push(`/details/${slug}?id=${id}`);
+      router.push(`/details/${slug}`);
     }
   };
 

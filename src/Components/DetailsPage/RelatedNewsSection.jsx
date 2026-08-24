@@ -82,7 +82,7 @@ function RelatedNewsSection({ currentNewId, topic }) {
               return (
                 <Link
                   key={item._id}
-                  href={`/details/${itemSlug}?id=${item._id}`}
+                  href={`/details/${itemSlug}`}
                   className="group bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-xs hover:shadow-md transition-all duration-300 flex flex-col h-full"
                 >
                   {/* Image Container */}

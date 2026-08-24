@@ -77,7 +77,7 @@ export default function HeroSection({ sliderData = [] }) {
     }
     const formattedTitle = formatTitleForUrl(article.title);
     const slug = article.slug ? article.slug : formattedTitle;
-    router.push(`/details/${slug}?id=${article._id}`);
+    router.push(`/details/${slug}`);
   };
 
   // ⚡ PERFECT CLS SKELETON: Exactly Matches Actual Render Height & Margins

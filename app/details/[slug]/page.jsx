@@ -10,15 +10,17 @@ import SidebarLatestNews from "../../../src/Components/DetailsPage/SidebarLatest
 import RelatedNewsSection from "../../../src/Components/DetailsPage/RelatedNewsSection";
 import Comments from "../../../src/Components/DetailsPage/Comments";
 
-// ⚡ 1. Backend API Fetching Function
-async function getArticleDetails(id, slug) {
-  if (!id) return null;
+// ⚡ 1. Backend API Fetching Function — ab sirf slug se fetch hota hai,
+// URL me ?id= dikhane/bhejne ki zaroorat nahi. Article ka _id (agar chahiye
+// ho related news/comments ke liye) khud article object se mil jaata hai.
+async function getArticleDetails(slug) {
+  if (!slug) return null;
 
   try {
-    const pageUrl = `https://loksatya.com/details/${slug}?id=${id}`;
-    
+    const pageUrl = `https://loksatya.com/details/${slug}`;
+
     const res = await fetch(
-      `${API_URL}/article?id=${id}&url=${encodeURIComponent(pageUrl)}`,
+      `${API_URL}/article?slug=${encodeURIComponent(slug)}&url=${encodeURIComponent(pageUrl)}`,
       {
         next: { revalidate: 60 },
       }
@@ -48,10 +50,9 @@ function processDescription(rawHtml = "") {
 }
 
 // ⚡ 3. Dynamic SEO Metadata
-export async function generateMetadata({ params, searchParams }) {
+export async function generateMetadata({ params }) {
   const { slug } = await params;
-  const { id } = await searchParams;
-  const article = await getArticleDetails(id, slug);
+  const article = await getArticleDetails(slug);
 
   if (!article) {
     return { title: "Article Not Found | Loksatya News" };
@@ -61,7 +62,7 @@ export async function generateMetadata({ params, searchParams }) {
     ? article.discription.replace(/<[^>]*>/g, "").substring(0, 160) + "..."
     : "Stay updated with the latest news on Loksatya.";
 
-  const shareUrl = `https://loksatya.com/details/${slug}?id=${id}`;
+  const shareUrl = `https://loksatya.com/details/${slug}`;
   const imageUrl = article.image || "https://loksatya.com/assets/Logo-new-BNYCZvJK.PNG";
 
   return {
@@ -118,15 +119,16 @@ function ArticleSkeleton() {
 }
 
 // ⚡ 5. Article Content Component
-async function ArticleContent({ id, slug }) {
-  const article = await getArticleDetails(id, slug);
+async function ArticleContent({ slug }) {
+  const article = await getArticleDetails(slug);
 
   if (!article) {
     notFound();
   }
 
   const processedHtml = processDescription(article.discription);
-  const shareUrl = `https://loksatya.com/details/${slug}?id=${id}`;
+  const shareUrl = `https://loksatya.com/details/${slug}`;
+  const articleId = article._id || article.id;
 
   const formattedDate = article.updatedAt || article.createdAt
     ? new Date(article.updatedAt || article.createdAt).toLocaleDateString("hi-IN", {
@@ -190,18 +192,17 @@ async function ArticleContent({ id, slug }) {
       />
 
       {/* 📍 2. आर्टिकल के अंत में संबंधित ख़बरें (Related News) यहाँ जोड़ा गया है */}
-      <RelatedNewsSection currentNewId={id} topic={article?.topic} />
+      <RelatedNewsSection currentNewId={articleId} topic={article?.topic} />
 
       {/* 💬 3. आर्टिकल के सबसे नीचे टिप्पणियाँ (Comments) */}
-      <Comments postId={id} />
+      <Comments postId={articleId} />
     </>
   );
 }
 
 // ⚡ 6. Main Page Export
-export default async function DetailsPage({ params, searchParams }) {
+export default async function DetailsPage({ params }) {
   const { slug } = await params;
-  const { id } = await searchParams;
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 md:py-10">
@@ -211,7 +212,7 @@ export default async function DetailsPage({ params, searchParams }) {
         {/* Left Side: Article Content (8 Columns) */}
         <article className="lg:col-span-8">
           <Suspense fallback={<ArticleSkeleton />}>
-            <ArticleContent id={id} slug={slug} />
+            <ArticleContent slug={slug} />
           </Suspense>
         </article>
 

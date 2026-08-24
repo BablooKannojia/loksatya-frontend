@@ -144,7 +144,7 @@ export default function CategoryPage({ slug }) {
                                 return (
                                     <Link
                                         key={item._id}
-                                        href={`/details/${articleSlug}?id=${item._id}`}
+                                        href={`/details/${articleSlug}`}
                                         className="grid grid-cols-12 gap-3.5 sm:gap-4 items-center group cursor-pointer border-b border-gray-100 pb-4 last:border-none last:pb-0"
                                     >
                                         {/* Thumbnail Image */}

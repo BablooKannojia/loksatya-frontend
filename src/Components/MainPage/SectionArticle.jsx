@@ -150,7 +150,7 @@ const SingleArticle = ({ category, combinedArticles = [] }) => {
           {subArticles.map((element) => (
             <div
               key={element?._id}
-              onClick={() => router.push(`/details/${formatTitleForSlug(element)}?id=${element?._id}`)}
+              onClick={() => router.push(`/details/${formatTitleForSlug(element)}`)}
               className="flex w-full gap-3 py-2 cursor-pointer items-start group border-b border-gray-100/70 hover:bg-slate-50/40 p-1 rounded transition-all duration-150 min-h-[76px]"
             >
               {/* Thumbnail Container with Reserved Box Size */}

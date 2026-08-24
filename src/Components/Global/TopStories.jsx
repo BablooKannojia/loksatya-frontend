@@ -63,7 +63,7 @@ export default function TopStories() {
               <div key={data._id} className="w-full min-h-[80px]">
                 <ShirshCard
                   data={data}
-                  OnPress={() => router.push(`/details/${titleSlug}?id=${data?._id}`)}
+                  OnPress={() => router.push(`/details/${titleSlug}`)}
                   image={data?.image}
                   wid="w-[45%]"
                   text={data?.title}
