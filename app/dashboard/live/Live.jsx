@@ -11,7 +11,8 @@ import {
   FiAlertTriangle, 
   FiX, 
   FiCheckCircle,
-  FiExternalLink
+  FiExternalLink,
+  FiRadio
 } from "react-icons/fi";
 
 const JoditEditor = dynamic(() => import("jodit-react"), { ssr: false });
@@ -165,13 +166,18 @@ const Live = () => {
       )}
 
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
-          Live Streaming
-        </h1>
-        <p className="text-xs sm:text-sm text-slate-400 mt-1">
-          Manage YouTube live links, titles, and broadcast descriptions.
-        </p>
+      <div className="flex items-center gap-3 mb-8">
+        <div className="p-2.5 bg-blue-50 dark:bg-blue-950/50 text-blue-600 rounded-2xl">
+          <FiRadio size={24} />
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+            Live Streaming
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-400 mt-1">
+            Manage YouTube live links, titles, and broadcast descriptions.
+          </p>
+        </div>
       </div>
 
       {/* Filter and Action Box */}

@@ -9,7 +9,8 @@ import {
   FiTrash2, 
   FiAlertTriangle, 
   FiX, 
-  FiCheckCircle 
+  FiCheckCircle, 
+  FiBarChart2
 } from "react-icons/fi";
 
 const Poll = () => {
@@ -187,13 +188,18 @@ const Poll = () => {
       )}
 
       {/* Title Section */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
-          Poll Management
-        </h1>
-        <p className="text-sm text-slate-400 mt-2">
-          Create, filter, and view response analytics for public polls.
-        </p>
+      <div className="flex items-center gap-3 mb-8">
+        <div className="p-2.5 bg-blue-50 dark:bg-blue-950/50 text-blue-600 rounded-2xl">
+          <FiBarChart2 size={24} />
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+            Poll Management
+          </h1>
+          <p className="text-sm text-slate-400 mt-2">
+            Create, filter, and view response analytics for public polls.
+          </p>
+        </div>
       </div>
 
       {/* Filter Bar & Controls Container */}

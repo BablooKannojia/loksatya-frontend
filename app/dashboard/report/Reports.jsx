@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { API_URL } from "../../../src/API";
+import { FiAlertCircle, FiFlag } from "react-icons/fi";
 
 const Report = ({ isAdmin }) => {
   const [data, setData] = useState([]);
@@ -50,13 +51,18 @@ const Report = ({ isAdmin }) => {
   return (
     <div className="p-8 bg-[#0a0f1d] min-h-screen text-slate-100 font-sans">
       {/* Title Section */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
-          User Reports Management
-        </h1>
-        <p className="text-sm text-slate-400 mt-2">
-          View, search, and manage reported questions and article feedback.
-        </p>
+      <div className="flex items-center gap-3 mb-8">
+        <div className="p-2.5 bg-blue-50 dark:bg-blue-950/50 text-blue-600 rounded-2xl">
+          <FiFlag size={24} />
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+            User Reports Management
+          </h1>
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            View, search, and manage reported questions and article feedback.
+          </p>
+        </div>
       </div>
 
       {/* Filter and Search Bar Section */}

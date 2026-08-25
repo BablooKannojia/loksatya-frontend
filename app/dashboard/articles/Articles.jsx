@@ -15,6 +15,7 @@ import {
     FiFilter, FiRefreshCw, FiEdit2,
     FiTrash2, FiAlertTriangle, FiVideo, FiCheckCircle,
     FiXCircle, FiX, FiChevronDown, FiChevronUp, FiExternalLink,
+    FiFileText,
 } from "react-icons/fi";
 
 const defaultFilterObject = {
@@ -340,8 +341,19 @@ const Articles = () => {
             )}
 
             {/* --- Header --- */}
-            <div className="flex justify-between items-center mb-3">
-                <h1 className="text-xl font-bold text-slate-900 dark:text-white">Articles Manager</h1>
+            <div className="flex justify-between items-center mb-5">
+                <div className="flex items-center gap-3">
+                    <div className="p-2.5 bg-blue-50 dark:bg-blue-950/50 text-blue-600 rounded-2xl">
+                        <FiFileText size={24} />
+                    </div>
+                    <div>
+                        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Articles Manager</h1>
+                        <p className="text-sm text-slate-400 mt-2">
+                            List your article or news, set slider, updates, status control.
+                        </p>
+                    </div>
+                </div>
+                
                 <button
                     onClick={() => getAllArticles(pagination.current, pagination.pageSize, filterItemResponse)}
                     className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-all shadow-sm"

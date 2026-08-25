@@ -296,14 +296,18 @@ const Video = () => {
       {/* Main Header */}
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-extrabold text-white tracking-tight flex items-center gap-3">
-              <IoMdVideocam className="text-blue-500" />
-              Video Management
-            </h1>
-            <p className="text-slate-400 text-sm mt-1">
-              Manage YouTube embeds, custom uploads, and stream visibility status.
-            </p>
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-blue-50 dark:bg-blue-950/50 text-blue-600 rounded-2xl">
+              <IoMdVideocam size={24} />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+                Video Management
+              </h1>
+              <p className="text-slate-400 text-sm mt-1">
+                Manage YouTube embeds, custom uploads, and stream visibility status.
+              </p>
+            </div>
           </div>
           <button
             onClick={fetchAllPhotos}

@@ -147,13 +147,18 @@ export default function LiveNewsList() {
 
             {/* Header */}
             <div className="mb-8 flex items-center justify-between flex-wrap gap-4">
-                <div>
-                    <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
-                        Live News Management
-                    </h1>
-                    <p className="text-sm text-slate-400 mt-2">
-                        Live blog banao, updates push karo, status control karo.
-                    </p>
+                <div className="flex items-center gap-3">
+                    <div className="p-2.5 bg-blue-50 dark:bg-blue-950/50 text-blue-600 rounded-2xl">
+                        <FiRadio size={24} />
+                    </div>
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+                            Live News Management
+                        </h1>
+                        <p className="text-sm text-slate-400 mt-2">
+                            Live blog banao, updates push karo, status control karo.
+                        </p>
+                    </div>
                 </div>
 
                 <button

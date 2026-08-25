@@ -10,7 +10,8 @@ import {
   FiCheckCircle, 
   FiShield, 
   FiX, 
-  FiAlertTriangle 
+  FiAlertTriangle, 
+  FiUsers
 } from "react-icons/fi";
 
 const UserList = () => {
@@ -149,10 +150,18 @@ const UserList = () => {
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">
-          Users Management
-        </h1>
+      <div className="flex items-center gap-3 mb-8">
+        <div className="p-2.5 bg-blue-50 dark:bg-blue-950/50 text-blue-600 rounded-2xl">
+          <FiUsers size={24} />
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+            Users Management
+          </h1>
+          <p className="text-slate-400 text-sm mt-1">
+            List your staff, journalist and manage your staff.
+          </p>
+        </div>
       </div>
 
       {/* Main Container */}

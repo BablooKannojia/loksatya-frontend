@@ -11,7 +11,8 @@ import {
   FiCheckCircle,
   FiAlertCircle,
   FiInfo,
-  FiPlus
+  FiPlus,
+  FiTv
 } from "react-icons/fi";
 
 const Ads = () => {
@@ -248,13 +249,18 @@ const Ads = () => {
       )}
 
       {/* Page Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl md:text-3xl font-extrabold text-[#00f2fe] tracking-tight">
-          Advertisement Management
-        </h1>
-        <p className="text-slate-400 text-xs md:text-sm mt-1">
-          Create, position, track, and monitor active promotional ad campaigns.
-        </p>
+      <div className="flex items-center gap-3 mb-8">
+        <div className="p-2.5 bg-blue-50 dark:bg-blue-950/50 text-blue-600 rounded-2xl">
+          <FiTv size={24} />
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+            Advertisement Management
+          </h1>
+          <p className="text-slate-400 text-xs md:text-sm mt-1">
+            Create, position, track, and monitor active promotional ad campaigns.
+          </p>
+        </div>
       </div>
 
       {/* Form Card */}

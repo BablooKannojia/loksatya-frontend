@@ -14,6 +14,7 @@ import {
   FaCheckCircle,
   FaExclamationCircle
 } from "react-icons/fa";
+import { FiFilm } from "react-icons/fi";
 
 const Stories = () => {
   const router = useRouter();
@@ -364,13 +365,18 @@ const Stories = () => {
       )}
 
       {/* Header */}
-      <div className="mb-6 w-full">
-        <h1 className="text-2xl md:text-3xl font-black bg-gradient-to-r from-[#00f2fe] to-[#4facfe] bg-clip-text text-transparent tracking-tight">
-          Visual Stories
-        </h1>
-        <p className="text-slate-400 text-xs md:text-sm mt-1 font-normal">
-          Manage and publish interactive visual stories for your audience.
-        </p>
+      <div className="flex items-center gap-3 mb-8">
+        <div className="p-2.5 bg-blue-50 dark:bg-blue-950/50 text-blue-600 rounded-2xl">
+          <FiFilm size={24} />
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+            Visual Stories
+          </h1>
+          <p className="text-slate-400 text-xs md:text-sm mt-1 font-normal">
+            Manage and publish interactive visual stories for your audience.
+          </p>
+        </div>
       </div>
 
       {/* Main Upload Box */}

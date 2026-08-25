@@ -16,6 +16,7 @@ import {
   FaChevronLeft,
   FaChevronRight
 } from "react-icons/fa";
+import { FiImage } from "react-icons/fi";
 
 const Photos = () => {
   const router = useRouter();
@@ -363,13 +364,18 @@ const Photos = () => {
       )}
 
       {/* Header */}
-      <div className="mb-6 w-full">
-        <h1 className="text-2xl md:text-3xl font-black bg-gradient-to-r from-[#00f2fe] to-[#4facfe] bg-clip-text text-transparent tracking-tight truncate">
-          Photos Gallery
-        </h1>
-        <p className="text-slate-400 text-xs md:text-sm mt-1 font-normal">
-          Upload, edit, and organize photo albums for your platform.
-        </p>
+      <div className="flex items-center gap-3 mb-8">
+        <div className="p-2.5 bg-blue-50 dark:bg-blue-950/50 text-blue-600 rounded-2xl">
+          <FiImage size={24} />
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+            Photos Gallery
+          </h1>
+          <p className="text-slate-400 text-xs md:text-sm mt-1 font-normal">
+            Upload, edit, and organize photo albums for your platform.
+          </p>
+        </div>
       </div>
 
       {/* Upload & Form Section */}

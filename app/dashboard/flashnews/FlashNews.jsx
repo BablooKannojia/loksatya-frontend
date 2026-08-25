@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { API_URL } from "../../../src/API";
+import { FiAlertCircle } from "react-icons/fi";
 
 const FlashNews = () => {
   // Input states
@@ -178,17 +179,18 @@ const FlashNews = () => {
       )}
 
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-cyan-400 via-sky-300 to-indigo-400 bg-clip-text text-transparent flex items-center gap-2">
-          <span className="relative flex h-3 w-3">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"></span>
-          </span>
-          Flash News Management
-        </h1>
-        <p className="text-slate-400 text-sm mt-1">
-          Add, edit, toggle status, or delete active flash news ticker items.
-        </p>
+      <div className="flex items-center gap-3 mb-8">
+        <div className="p-2.5 bg-blue-50 dark:bg-blue-950/50 text-blue-600 rounded-2xl">
+          <FiAlertCircle size={24} />
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+            Flash News Management
+          </h1>
+          <p className="text-slate-400 text-sm mt-1">
+            Add, edit, toggle status, or delete active flash news ticker items.
+          </p>
+        </div>
       </div>
 
       {/* Main Card / Form */}

@@ -11,8 +11,5 @@ export const metadata = {
 };
 
 export default function page() {
-  // return <TopStories />
-  return (
-    <>top stories page</>
-  )
+  return <TopStories />
 }

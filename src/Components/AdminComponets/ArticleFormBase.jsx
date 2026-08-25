@@ -3,6 +3,7 @@
 import React from "react";
 import dynamic from "next/dynamic";
 import { useArticleForm } from "./UseArticleform";
+import {  FiUploadCloud } from "react-icons/fi"
 
 const JoditEditor = dynamic(() => import("jodit-react"), { ssr: false });
 
@@ -50,11 +51,16 @@ export default function ArticleFormBase({
 
             {/* Main Header */}
             <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
-                <div>
-                    <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">
-                        {f.onEdit ? editHeading : heading}
-                    </h1>
-                    <p className="text-slate-400 text-sm mt-1">{subheading}</p>
+                <div className="flex items-center gap-3">
+                    <div className="p-2.5 bg-blue-50 dark:bg-blue-950/50 text-blue-600 rounded-2xl">
+                        <FiUploadCloud size={24} />
+                    </div>
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+                            {f.onEdit ? editHeading : heading}
+                        </h1>
+                        <p className="text-slate-400 text-sm mt-1">{subheading}</p>
+                    </div>
                 </div>
 
                 {f.onEdit && (
