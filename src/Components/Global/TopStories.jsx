@@ -36,7 +36,7 @@ export default function TopStories() {
   if (topStories.length === 0) return null;
 
   const sortedStories = [...topStories]
-    .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     .slice(0, 6);
 
   return (
