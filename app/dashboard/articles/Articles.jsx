@@ -488,6 +488,14 @@ const Articles = () => {
                                                                                 LIVE
                                                                             </span>
                                                                         )}
+                                                                        {getSliderPosition(article._id) !== "-" && (
+                                                                            <span
+                                                                                title="Slider Position"
+                                                                                className="flex items-center gap-1 bg-pink-600/15 text-pink-500 border border-pink-600/40 text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0"
+                                                                            >
+                                                                                Slider #{getSliderPosition(article._id)}
+                                                                            </span>
+                                                                        )}
                                                                         <span
                                                                             className="font-semibold text-slate-900 dark:text-white truncate text-xs"
                                                                             title={article.title}
