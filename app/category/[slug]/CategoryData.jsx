@@ -31,18 +31,18 @@ export default function CategoryPage({ slug }) {
             try {
                 setLoading(true);
 
+                // ✅ FIXED: ab Article + LiveNews dono collections se
+                // matching data ek hi merged (date-wise sorted) list me
+                // milta hai, isliye alag /article endpoint ke bajaye
+                // /category-feed use karte hain.
                 const queryParams = new URLSearchParams({
                     category: categoryName,
-                    search: categoryName,
-                    keyword: categoryName,
-                    pagenation: "true",
                     page: page.toString(),
                     limit: limit.toString(),
-                    subCategory: "",
                 });
 
                 const response = await axios.get(
-                    `${API_URL}/article?${queryParams.toString()}`
+                    `${API_URL}/category-feed?${queryParams.toString()}`
                 );
 
                 const resData = response.data;
@@ -137,15 +137,24 @@ export default function CategoryPage({ slug }) {
                         ) : articles.length > 0 ? (
                             articles.map((item) => {
                                 const articleSlug = getArticleSlug(item);
-                                const shortDescription = formatDescription(item.discription, 230);
+                                const isLiveNews = item.contentType === "liveNews";
+                                const shortDescription = formatDescription(
+                                    item.discription || item.description,
+                                    230
+                                );
                                 const formattedDate = formatDate(
                                     item.createdAt || item.publishAt
                                 );
+                                const href =
+                                    item.detailUrl ||
+                                    (isLiveNews
+                                        ? `/live-news/${articleSlug}`
+                                        : `/details/${articleSlug}`);
 
                                 return (
                                     <Link
                                         key={item._id}
-                                        href={`/details/${articleSlug}`}
+                                        href={href}
                                         className="grid grid-cols-12 gap-3.5 sm:gap-4 items-center group cursor-pointer border-b border-gray-100 pb-4 last:border-none last:pb-0"
                                     >
                                         {/* Thumbnail Image */}
@@ -167,6 +176,13 @@ export default function CategoryPage({ slug }) {
                                             {item.topic && (
                                                 <span className="absolute top-2 left-2 bg-[#D90429] text-white text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded uppercase shadow-sm">
                                                     {item.topic}
+                                                </span>
+                                            )}
+
+                                            {isLiveNews && (
+                                                <span className="absolute top-2 right-2 flex items-center gap-1 bg-black/70 text-white text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded uppercase shadow-sm">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
+                                                    Live
                                                 </span>
                                             )}
                                         </div>
