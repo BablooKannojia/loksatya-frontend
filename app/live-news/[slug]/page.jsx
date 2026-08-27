@@ -1,5 +1,6 @@
 import React from 'react'
 import LiveNewsPage from './LiveNewsPage'
+import { API_URL } from '../../../src/API';
 
 export async function generateMetadata() {
   try {
