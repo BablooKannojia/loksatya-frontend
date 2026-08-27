@@ -173,18 +173,44 @@ export function useLiveNewsForm({
             return;
         }
 
-        axios
-            .get(`${API_URL}/subcategory?category=${category}`)
-            .then((content) => {
+        const fetchSubCategories = async () => {
+            try {
+                const response = await axios.get(
+                    `${API_URL}/subcategory`,
+                    {
+                        params: {
+                            category: category,
+                        },
+                    }
+                );
+
+                console.log("Selected Category:", category);
+                console.log("Subcategory Response:", response.data);
+
+                const data = Array.isArray(response.data)
+                    ? response.data
+                    : Array.isArray(response.data?.data)
+                        ? response.data.data
+                        : [];
+
                 setSubCategories(
-                    (content.data || []).map((el) => ({
+                    data.map((el) => ({
                         key: el._id,
                         value: el.text,
                         label: el.text,
                     }))
                 );
-            })
-            .catch((err) => console.error(err));
+            } catch (error) {
+                console.error(
+                    "Subcategory fetch error:",
+                    error.response?.data || error
+                );
+
+                setSubCategories([]);
+            }
+        };
+
+        fetchSubCategories();
     }, [category]);
 
     // ---------------- Tags: available options + search (debounced) ----------------
@@ -402,14 +428,15 @@ export function useLiveNewsForm({
                 formData.append("image", image);
             }
 
+            // ✅ FIXED: Content-Type header manually set nahi karte — axios
+            // FormData ke liye khud hi boundary ke saath sahi multipart
+            // Content-Type set karta hai. Manually set karne se boundary
+            // missing ho jata tha aur backend multipart body parse nahi
+            // kar pata tha, isliye category/subCategory (aur baaki fields)
+            // update nahi ho rahe the.
             await axios.put(
                 `${API_URL}/live-news/${editId || id}`,
-                formData,
-                {
-                    headers: {
-                        "Content-Type": "multipart/form-data",
-                    },
-                }
+                formData
             );
 
             notify("Live News Updated Successfully");

@@ -11,11 +11,11 @@ import {
     IoTimeOutline,
     IoPersonOutline,
 } from "react-icons/io5";
-import TopStories from "../../../src/Components/Global/TopStories";
 import VisualStories from "@/src/Components/Global/VisualStories";
-import { API_URL } from "../../../src/API";
+import TopStories from "../../../../src/Components/Global/TopStories";
+import { API_URL } from "../../../../src/API";
 
-export default function CategoryPage({ slug }) {
+export default function SubCategoryPage({ category, slug }) {
     const rawCategoryName = slug ? decodeURIComponent(slug) : "";
     const [articles, setArticles] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -24,34 +24,46 @@ export default function CategoryPage({ slug }) {
     const limit = 7;
 
     // Fetch API Function
-    const fetchCategoryArticles = useCallback(
-        async (categoryName, page) => {
-            if (!categoryName) return;
+    const fetchSubCategoryArticles = useCallback(
+        async (categoryName, subCategoryName, page) => {
+            if (!categoryName || !subCategoryName) return;
 
             try {
                 setLoading(true);
 
+                // ✅ FIXED: ab Article + LiveNews dono collections se
+                // matching data ek hi merged (date-wise sorted) list me
+                // milta hai, isliye alag /article endpoint ke bajaye
+                // /subcategory-feed use karte hain.
                 const queryParams = new URLSearchParams({
                     category: categoryName,
-                    search: categoryName,
-                    keyword: categoryName,
-                    pagenation: "true",
+                    subCategory: subCategoryName,
                     page: page.toString(),
                     limit: limit.toString(),
-                    subCategory: "",
                 });
 
+                console.log(
+                    "SUBCATEGORY FEED API:",
+                    `${API_URL}/subcategory-feed?${queryParams.toString()}`
+                );
+
                 const response = await axios.get(
-                    `${API_URL}/article?${queryParams.toString()}`
+                    `${API_URL}/subcategory-feed?${queryParams.toString()}`
                 );
 
                 const resData = response.data;
 
                 setArticles(resData?.data || []);
                 setTotalPages(resData?.pages || 1);
+
             } catch (error) {
-                console.error("Error fetching category articles:", error);
+                console.error(
+                    "Error fetching subcategory articles:",
+                    error.response?.data || error
+                );
+
                 setArticles([]);
+                setTotalPages(1);
             } finally {
                 setLoading(false);
             }
@@ -60,10 +72,17 @@ export default function CategoryPage({ slug }) {
     );
 
     useEffect(() => {
-        if (rawCategoryName) {
-            fetchCategoryArticles(rawCategoryName, currentPage);
-        }
-    }, [rawCategoryName, currentPage, fetchCategoryArticles]);
+        fetchSubCategoryArticles(
+            category,
+            slug,
+            currentPage
+        );
+    }, [
+        category,
+        slug,
+        currentPage,
+        fetchSubCategoryArticles
+    ]);
 
     const getArticleSlug = (item) => {
         if (item?.slug) return item.slug;
@@ -137,15 +156,26 @@ export default function CategoryPage({ slug }) {
                         ) : articles.length > 0 ? (
                             articles.map((item) => {
                                 const articleSlug = getArticleSlug(item);
-                                const shortDescription = formatDescription(item.discription, 230);
+                                const isLiveNews = item.contentType === "liveNews";
+                                // LiveNews me description field alag naam se
+                                // aati hai (discription nahi), dono handle karte hain
+                                const shortDescription = formatDescription(
+                                    item.discription || item.description,
+                                    230
+                                );
                                 const formattedDate = formatDate(
                                     item.createdAt || item.publishAt
                                 );
+                                const href =
+                                    item.detailUrl ||
+                                    (isLiveNews
+                                        ? `/live-news/${articleSlug}`
+                                        : `/details/${articleSlug}`);
 
                                 return (
                                     <Link
                                         key={item._id}
-                                        href={`/details/${articleSlug}`}
+                                        href={href}
                                         className="grid grid-cols-12 gap-3.5 sm:gap-4 items-center group cursor-pointer border-b border-gray-100 pb-4 last:border-none last:pb-0"
                                     >
                                         {/* Thumbnail Image */}
@@ -167,6 +197,13 @@ export default function CategoryPage({ slug }) {
                                             {item.topic && (
                                                 <span className="absolute top-2 left-2 bg-[#D90429] text-white text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded uppercase shadow-sm">
                                                     {item.topic}
+                                                </span>
+                                            )}
+
+                                            {isLiveNews && (
+                                                <span className="absolute top-2 right-2 flex items-center gap-1 bg-black/70 text-white text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded uppercase shadow-sm">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
+                                                    Live
                                                 </span>
                                             )}
                                         </div>

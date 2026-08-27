@@ -107,6 +107,11 @@ function HeaderSearch({ variant = "icon", onAfterSubmit }) {
 function categoryHref(text = "") {
   return `/category/${encodeURIComponent(text.trim())}`;
 }
+function subcategoryHref(category = "", subcategory = "") {
+  return `/subcategory/${encodeURIComponent(
+    category.trim()
+  )}/${encodeURIComponent(subcategory.trim())}`;
+}
 
 /* ---------- single nav item with its own dropdown ---------- */
 function NavItem({ item }) {
@@ -141,7 +146,11 @@ function NavItem({ item }) {
             {item.subcategories.map((sub) => (
               <li key={sub._id}>
                 <Link
-                  href={categoryHref(sub.text)}
+                  href={subcategoryHref(item.text, sub.text)}
+                  onClick={() => {
+                    setMoreOpen(false);
+                    setOpenSubMenuId(null);
+                  }}
                   className="block border-l-[3px] border-transparent px-4 py-2 font-devanagari text-[13.5px] text-ink-soft hover:border-brand hover:bg-brand-light hover:text-brand"
                 >
                   {sub.text}
@@ -313,11 +322,12 @@ function HeaderNav({ menu }) {
                             {item.subcategories.map((sub) => (
                               <li key={sub._id}>
                                 <Link
-                                  href={categoryHref(sub.text)}
-                                  onClick={() => {
-                                    setMoreOpen(false);
-                                    setOpenSubMenuId(null);
-                                  }}
+                                  href={subcategoryHref(item.text, sub.text)}
+                                  onClick={() => setDrawerOpen(false)}
+                                  // onClick={() => {
+                                  //   setMoreOpen(false);
+                                  //   setOpenSubMenuId(null);
+                                  // }}
                                   className="block py-2 pl-8 pr-4 font-devanagari text-[13px] text-ink-soft hover:bg-gray-100 hover:text-brand"
                                 >
                                   {sub.text}
@@ -543,7 +553,7 @@ export default function Header() {
                       {item.subcategories.map((sub) => (
                         <li key={sub._id}>
                           <Link
-                            href={categoryHref(sub.text)}
+                            href={subcategoryHref(item.text, sub.text)}
                             onClick={() => setDrawerOpen(false)}
                             className="block border-l-4 border-transparent py-2.5 pl-[34px] pr-4 text-[13.5px] text-ink-soft hover:border-brand hover:bg-brand-light hover:text-brand"
                           >

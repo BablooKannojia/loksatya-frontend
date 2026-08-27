@@ -280,20 +280,51 @@ export function useArticleForm({
 
     // Category badalte hi subcategory reload
     useEffect(() => {
-        if (Topic) {
-            axios
-                .get(`${API_URL}/subcategory?category=${Topic}`)
-                .then((content) => {
-                    setSubCategoryData(
-                        content.data.map((el) => ({
-                            key: el._id,
-                            value: el.text,
-                            label: el.text,
-                        }))
-                    );
-                })
-                .catch((err) => console.error(err));
+        if (!Topic) {
+            setSubCategoryData([]);
+            return;
         }
+
+        const fetchSubCategories = async () => {
+            try {
+                const response = await axios.get(
+                    `${API_URL}/subcategory`,
+                    {
+                        params: {
+                            category: Topic,
+                        },
+                    }
+                );
+
+                console.log("Selected Category:", Topic);
+                console.log("Subcategory API Response:", response.data);
+
+                // API response ke different possible formats handle karo
+                const subcategories =
+                    Array.isArray(response.data)
+                        ? response.data
+                        : Array.isArray(response.data?.data)
+                            ? response.data.data
+                            : [];
+
+                setSubCategoryData(
+                    subcategories.map((el) => ({
+                        key: el._id,
+                        value: el.text,
+                        label: el.text,
+                    }))
+                );
+            } catch (err) {
+                console.error(
+                    "Error fetching subcategories:",
+                    err.response?.data || err
+                );
+
+                setSubCategoryData([]);
+            }
+        };
+
+        fetchSubCategories();
     }, [Topic]);
 
     const showVerifyModal = () => {
