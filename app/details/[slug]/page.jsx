@@ -1,6 +1,5 @@
 import React, { Suspense } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { IoTimeOutline, IoArrowBack, IoPersonOutline } from "react-icons/io5";
 import ShareButtons from "./ShareButtons";
@@ -10,9 +9,6 @@ import SidebarLatestNews from "../../../src/Components/DetailsPage/SidebarLatest
 import RelatedNewsSection from "../../../src/Components/DetailsPage/RelatedNewsSection";
 import Comments from "../../../src/Components/DetailsPage/Comments";
 
-// ⚡ 1. Backend API Fetching Function — ab sirf slug se fetch hota hai,
-// URL me ?id= dikhane/bhejne ki zaroorat nahi. Article ka _id (agar chahiye
-// ho related news/comments ke liye) khud article object se mil jaata hai.
 async function getArticleDetails(slug) {
   if (!slug) return null;
 
@@ -130,14 +126,14 @@ async function ArticleContent({ slug }) {
   const shareUrl = `https://loksatya.com/details/${slug}`;
   const articleId = article._id || article.id;
 
-  const formattedDate = article.updatedAt || article.createdAt
-    ? new Date(article.updatedAt || article.createdAt).toLocaleDateString("hi-IN", {
+ const formattedDate = article.createdAt
+    ? new Date(article.createdAt).toLocaleDateString("hi-IN", {
         weekday: "long",
         year: "numeric",
         month: "long",
         day: "numeric",
       })
-    : "20 July 2026";
+    : "";
 
   return (
     <>
