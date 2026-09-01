@@ -2,11 +2,15 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
-import { IoPersonCircleOutline, IoChatbubbleEllipsesOutline } from "react-icons/io5";
+import {
+  IoPersonCircleOutline,
+  IoChatbubbleEllipsesOutline,
+} from "react-icons/io5";
 import { API_URL } from "../../API";
 
 function formatDate(dateString) {
   if (!dateString) return "";
+
   return new Date(dateString).toLocaleDateString("hi-IN", {
     day: "numeric",
     month: "short",
@@ -25,15 +29,37 @@ function Comments({ postId }) {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  // IMPORTANT: postId ke bina comments kabhi fetch mat karo
   const fetchComments = useCallback(async () => {
-    if (!postId) return;
+    if (!postId) {
+      setComments([]);
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
+
       const res = await axios.get(`${API_URL}/comment`, {
-        params: { postId },
+        params: {
+          postId: String(postId),
+        },
       });
+
       const data = res.data?.data || res.data || [];
-      setComments(Array.isArray(data) ? data : []);
+
+      // Safety filter:
+      // Backend agar galti se extra comments bhej de,
+      // to sirf current news ke comments show honge.
+      const filteredComments = Array.isArray(data)
+        ? data.filter(
+            (comment) =>
+              String(comment.postId || comment.post?._id || "") ===
+              String(postId)
+          )
+        : [];
+
+      setComments(filteredComments);
     } catch (err) {
       console.error("Error fetching comments:", err);
       setComments([]);
@@ -43,13 +69,23 @@ function Comments({ postId }) {
   }, [postId]);
 
   useEffect(() => {
+    setComments([]);
+    setSuccess("");
+    setError("");
+
     fetchComments();
   }, [fetchComments]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     setError("");
     setSuccess("");
+
+    if (!postId) {
+      setError("इस समाचार की पहचान नहीं मिली।");
+      return;
+    }
 
     if (!name.trim() || !text.trim()) {
       setError("कृपया अपना नाम और टिप्पणी दोनों दर्ज करें।");
@@ -58,28 +94,40 @@ function Comments({ postId }) {
 
     try {
       setSubmitting(true);
+
       await axios.post(`${API_URL}/comment`, {
-        postId,
+        postId: String(postId),
         name: name.trim(),
         message: text.trim(),
       });
 
       setText("");
       setSuccess("आपकी टिप्पणी सफलतापूर्वक जोड़ी गई।");
-      fetchComments();
+
+      await fetchComments();
     } catch (err) {
       console.error("Error posting comment:", err);
-      setError("टिप्पणी जोड़ने में समस्या हुई, कृपया पुनः प्रयास करें।");
+
+      setError(
+        err?.response?.data?.message ||
+          "टिप्पणी जोड़ने में समस्या हुई, कृपया पुनः प्रयास करें।"
+      );
     } finally {
       setSubmitting(false);
     }
   };
 
+  // Agar news ID hi nahi hai to component render na ho
+  if (!postId) {
+    return null;
+  }
+
   return (
     <section className="w-full mt-12 pt-8 border-t border-gray-200">
       {/* Header */}
       <div className="flex items-center gap-2 mb-6">
-        <span className="h-6 w-1.5 bg-[#D90429] rounded-full inline-block"></span>
+        <span className="h-6 w-1.5 bg-[#D90429] rounded-full inline-block" />
+
         <h2 className="text-xl sm:text-2xl font-extrabold text-gray-900 tracking-wide">
           टिप्पणियाँ {!loading && `(${comments.length})`}
         </h2>
@@ -112,8 +160,17 @@ function Comments({ postId }) {
             className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm outline-none focus:border-[#D90429] focus:ring-2 focus:ring-[#D90429]/20 resize-none"
           />
 
-          {error && <p className="text-xs sm:text-sm text-red-600 font-medium">{error}</p>}
-          {success && <p className="text-xs sm:text-sm text-green-600 font-medium">{success}</p>}
+          {error && (
+            <p className="text-xs sm:text-sm text-red-600 font-medium">
+              {error}
+            </p>
+          )}
+
+          {success && (
+            <p className="text-xs sm:text-sm text-green-600 font-medium">
+              {success}
+            </p>
+          )}
 
           <button
             type="submit"
@@ -133,6 +190,7 @@ function Comments({ postId }) {
             .map((_, idx) => (
               <div key={idx} className="flex gap-3 animate-pulse">
                 <div className="h-10 w-10 shrink-0 rounded-full bg-gray-200" />
+
                 <div className="flex-1 space-y-2">
                   <div className="h-3 w-32 bg-gray-200 rounded" />
                   <div className="h-3 w-full bg-gray-100 rounded" />
@@ -141,30 +199,38 @@ function Comments({ postId }) {
               </div>
             ))
         ) : comments.length > 0 ? (
-          comments.map((c) => (
-            <div
-              key={c._id}
-              className="flex gap-3 border-b border-gray-100 pb-4 last:border-none"
-            >
-              <IoPersonCircleOutline className="h-10 w-10 shrink-0 text-gray-300" />
-              <div className="flex-1 min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-bold text-sm text-gray-900">
-                    {c.name || "उपयोगकर्ता"}
-                  </span>
-                  {(c.createdAt || c.updatedAt) && (
-                    <span className="text-[11px] text-gray-400">
-                      {formatDate(c.createdAt || c.updatedAt)}
+          comments.map((c) => {
+            const commentText =
+              c.message || c.comment || c.text || "";
+
+            return (
+              <div
+                key={c._id}
+                className="flex gap-3 border-b border-gray-100 pb-4 last:border-none"
+              >
+                <IoPersonCircleOutline className="h-10 w-10 shrink-0 text-gray-300" />
+
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-bold text-sm text-gray-900">
+                      {c.name || "उपयोगकर्ता"}
                     </span>
-                  )}
+
+                    {(c.createdAt || c.updatedAt) && (
+                      <span className="text-[11px] text-gray-400">
+                        {formatDate(c.createdAt || c.updatedAt)}
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="text-sm text-gray-700 mt-1 leading-relaxed break-words">
+                    {commentText.slice(0, 100)}
+                    {commentText.length > 100 && "..."}
+                  </p>
                 </div>
-                      <p className="text-sm text-gray-700 mt-1 leading-relaxed break-words">
-                          {(c.message || c.comment || c.text || "").slice(0, 100)}
-                          {(c.message || c.comment || c.text || "").length > 100 && "..."}
-                      </p>
               </div>
-            </div>
-          ))
+            );
+          })
         ) : (
           <p className="text-center text-gray-500 text-sm py-6">
             अभी तक कोई टिप्पणी नहीं है। सबसे पहले टिप्पणी करें!
