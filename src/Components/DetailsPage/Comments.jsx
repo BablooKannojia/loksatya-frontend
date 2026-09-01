@@ -24,12 +24,12 @@ function Comments({ postId }) {
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [text, setText] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  // IMPORTANT: postId ke bina comments kabhi fetch mat karo
   const fetchComments = useCallback(async () => {
     if (!postId) {
       setComments([]);
@@ -48,9 +48,6 @@ function Comments({ postId }) {
 
       const data = res.data?.data || res.data || [];
 
-      // Safety filter:
-      // Backend agar galti se extra comments bhej de,
-      // to sirf current news ke comments show honge.
       const filteredComments = Array.isArray(data)
         ? data.filter(
             (comment) =>
@@ -87,8 +84,16 @@ function Comments({ postId }) {
       return;
     }
 
-    if (!name.trim() || !text.trim()) {
-      setError("कृपया अपना नाम और टिप्पणी दोनों दर्ज करें।");
+    if (!name.trim() || !email.trim() || !text.trim()) {
+      setError("कृपया अपना नाम, ईमेल और टिप्पणी सभी दर्ज करें।");
+      return;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailRegex.test(email.trim())) {
+      setError("कृपया सही ईमेल पता दर्ज करें।");
       return;
     }
 
@@ -98,6 +103,7 @@ function Comments({ postId }) {
       await axios.post(`${API_URL}/comment`, {
         postId: String(postId),
         name: name.trim(),
+        email: email.trim(),
         message: text.trim(),
       });
 
@@ -117,7 +123,6 @@ function Comments({ postId }) {
     }
   };
 
-  // Agar news ID hi nahi hai to component render na ho
   if (!postId) {
     return null;
   }
@@ -144,6 +149,7 @@ function Comments({ postId }) {
         </div>
 
         <div className="flex flex-col gap-3">
+          {/* Name */}
           <input
             type="text"
             value={name}
@@ -152,6 +158,17 @@ function Comments({ postId }) {
             className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm outline-none focus:border-[#D90429] focus:ring-2 focus:ring-[#D90429]/20"
           />
 
+          {/* Email */}
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="आपका ईमेल"
+            autoComplete="email"
+            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm outline-none focus:border-[#D90429] focus:ring-2 focus:ring-[#D90429]/20"
+          />
+
+          {/* Comment */}
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
@@ -200,8 +217,7 @@ function Comments({ postId }) {
             ))
         ) : comments.length > 0 ? (
           comments.map((c) => {
-            const commentText =
-              c.message || c.comment || c.text || "";
+            const commentText = c.message || c.comment || c.text || "";
 
             return (
               <div
