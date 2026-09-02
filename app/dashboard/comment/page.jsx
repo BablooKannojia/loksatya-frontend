@@ -11,5 +11,5 @@ export const metadata = {
 };
 
 export default function page() {
-  return <Comments />
+  return <Comments isAdmin={true}/>
 }

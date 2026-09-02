@@ -13,7 +13,7 @@ import {
 } from "react-icons/fi";
 import axios from "axios";
 
-const Comments = ({ isAdmin }) => {
+const Comments = ({ isAdmin, postId }) => {
     const [comments, setComments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filterItem, setFilterItem] = useState("id");
@@ -34,8 +34,14 @@ const Comments = ({ isAdmin }) => {
         setLoading(true);
 
         try {
-            const response = await axios.get(`${API_URL}/comment`);
+            const url = isAdmin
+                ? `${API_URL}/comment`
+                : `${API_URL}/comment?postId=${encodeURIComponent(postId)}`;
+
+            const response = await axios.get(url);
+
             const data = response.data;
+
             const commentsData = Array.isArray(data)
                 ? data
                 : Array.isArray(data?.data)
@@ -45,18 +51,24 @@ const Comments = ({ isAdmin }) => {
                         : [];
 
             setComments(commentsData);
+
         } catch (error) {
             console.error("Error fetching comments:", error);
             setComments([]);
-            showNotification("Failed to fetch comments. Please try again.", "error");
+            showNotification(
+                "Failed to fetch comments. Please try again.",
+                "error"
+            );
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchComments();
-    }, [])
+        if (isAdmin || postId) {
+            fetchComments();
+        }
+    }, [isAdmin, postId]);
 
     const onFilter = async () => {
         if (!filterItemResponse.trim()) {
