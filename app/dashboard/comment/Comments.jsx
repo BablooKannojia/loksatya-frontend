@@ -11,6 +11,7 @@ import {
     FiCheckCircle,
     FiMessageSquare
 } from "react-icons/fi";
+import axios from "axios";
 
 const Comments = ({ isAdmin }) => {
     const [comments, setComments] = useState([]);
@@ -31,13 +32,22 @@ const Comments = ({ isAdmin }) => {
 
     const fetchComments = async () => {
         setLoading(true);
+
         try {
-            const response = await fetch(`${API_URL}/comment`);
-            if (!response.ok) throw new Error("Failed to fetch");
-            const data = await response.json();
-            setComments(Array.isArray(data) ? data : []);
+            const response = await axios.get(`${API_URL}/comment`);
+            const data = response.data;
+            const commentsData = Array.isArray(data)
+                ? data
+                : Array.isArray(data?.data)
+                    ? data.data
+                    : Array.isArray(data?.comments)
+                        ? data.comments
+                        : [];
+
+            setComments(commentsData);
         } catch (error) {
             console.error("Error fetching comments:", error);
+            setComments([]);
             showNotification("Failed to fetch comments. Please try again.", "error");
         } finally {
             setLoading(false);
@@ -45,7 +55,7 @@ const Comments = ({ isAdmin }) => {
     };
 
     useEffect(() => {
-      fetchComments();
+        fetchComments();
     }, [])
 
     const onFilter = async () => {
@@ -53,15 +63,26 @@ const Comments = ({ isAdmin }) => {
             fetchComments();
             return;
         }
+
         setLoading(true);
+
         try {
-            const response = await fetch(
+            const response = await axios.get(
                 `${API_URL}/comment?${filterItem}=${encodeURIComponent(filterItemResponse)}`
             );
-            if (!response.ok) throw new Error("Filter failed");
-            const data = await response.json();
-            setComments(Array.isArray(data) ? data : []);
+            const data = response.data;
+            const commentsData = Array.isArray(data)
+                ? data
+                : Array.isArray(data?.data)
+                    ? data.data
+                    : Array.isArray(data?.comments)
+                        ? data.comments
+                        : [];
+
+            setComments(commentsData);
         } catch (err) {
+            console.error("Error filtering comments:", err);
+            setComments([]);
             showNotification("Error in Filtering", "error");
         } finally {
             setLoading(false);
@@ -81,20 +102,33 @@ const Comments = ({ isAdmin }) => {
 
     const OnDelete = async () => {
         if (!currentComment?._id) return;
-        try {
-            const response = await fetch(`${API_URL}/comment?id=${currentComment._id}`, {
-                method: "DELETE",
-            });
 
-            if (response.ok) {
-                showNotification("Comment Has Successfully Deleted", "success");
-                fetchComments();
+        try {
+            const response = await axios.delete(
+                `${API_URL}/comment?id=${currentComment._id}`
+            );
+
+            if (response.data?.success) {
+                showNotification(
+                    "Comment Has Successfully Deleted",
+                    "success"
+                );
+
+                // Delete ke baad list reload
+                await fetchComments();
             } else {
-                showNotification("Comment Has Not Deleted", "error");
+                showNotification(
+                    "Comment Has Not Deleted",
+                    "error"
+                );
             }
         } catch (err) {
-            console.error(err);
-            showNotification("Comment Has Not Deleted", "error");
+            console.error("Delete comment error:", err);
+
+            showNotification(
+                "Comment Has Not Deleted",
+                "error"
+            );
         } finally {
             setIsModalDeleteOpen(false);
             setCurrentComment(null);
@@ -135,8 +169,8 @@ const Comments = ({ isAdmin }) => {
             {toast.show && (
                 <div
                     className={`fixed top-5 right-5 z-50 px-4 py-3 rounded-xl shadow-2xl border text-sm font-medium flex items-center gap-3 transition-all duration-300 ${toast.type === "success"
-                            ? "bg-emerald-950/90 border-emerald-700 text-emerald-200"
-                            : "bg-red-950/90 border-red-700 text-red-200"
+                        ? "bg-emerald-950/90 border-emerald-700 text-emerald-200"
+                        : "bg-red-950/90 border-red-700 text-red-200"
                         }`}
                 >
                     {toast.type === "success" ? (
