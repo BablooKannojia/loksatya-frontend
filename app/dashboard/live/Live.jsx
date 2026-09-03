@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { API_URL } from "../../../src/API";
 import { 
@@ -17,6 +17,39 @@ import {
 
 const JoditEditor = dynamic(() => import("jodit-react"), { ssr: false });
 
+// Editor images ko Firebase (backend /image route) par upload karke
+// uska real URL insert karta hai — toolbar button aur drag & drop
+// dono isi function ko use karte hain.
+// NOTE: drop event me 'this' Jodit instance se bind nahi hota, isliye
+// editor instance ko 'editorRef' param se explicitly pass karte hain.
+const uploadLiveEditorImages = async (editorRef, files) => {
+  if (!files || files.length === 0) return;
+  for (let i = 0; i < files.length; i++) {
+    const formData = new FormData();
+    formData.append("file", files[i]);
+    try {
+      const res = await fetch(`${API_URL}/image`, {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      const imageUrl = data.image;
+      const imgHtml = `<p><img src="${imageUrl}" alt="Uploaded image" style="max-width:100%; height:auto;" /></p>`;
+
+      const instance = editorRef.current;
+      if (instance && instance.s && typeof instance.s.insertHTML === "function") {
+        instance.s.insertHTML(imgHtml);
+      } else if (instance && typeof instance.selection?.insertHTML === "function") {
+        instance.selection.insertHTML(imgHtml);
+      } else if (instance) {
+        instance.value = (instance.value || "") + imgHtml;
+      }
+    } catch (err) {
+      console.error("Image upload failed:", err);
+    }
+  }
+};
+
 const Live = () => {
   const [userData, setUserData] = useState([]);
   const [filterItem, setFilterItem] = useState("id");
@@ -29,6 +62,39 @@ const Live = () => {
   const [desc, setDesc] = useState("");
 
   const editor = useRef(null);
+
+  // Editor ref banne ke baad hi joditConfig banaya jaa raha hai (useMemo)
+  // taaki drop/customBuild dono me sahi editor instance mile.
+  const liveJoditConfig = useMemo(
+    () => ({
+      uploader: {
+        insertImageAsBase64URI: false,
+        customBuild: async function (data, form, files) {
+          await uploadLiveEditorImages(editor, files);
+        },
+      },
+      // Drag & drop ko intercept karke Firebase upload se route karo,
+      // warna Jodit default local file:/// path insert kar deta hai.
+      events: {
+        drop: function (event) {
+          const dt = event.dataTransfer;
+          const files = dt && dt.files;
+          if (files && files.length > 0) {
+            const isAllImages = Array.from(files).every((f) =>
+              f.type.startsWith("image/")
+            );
+            if (isAllImages) {
+              event.preventDefault();
+              event.stopPropagation();
+              uploadLiveEditorImages(editor, files);
+              return false;
+            }
+          }
+        },
+      },
+    }),
+    []
+  );
 
   const [toast, setToast] = useState({ show: false, message: "", type: "success" });
 
@@ -381,6 +447,7 @@ const Live = () => {
                   ref={editor}
                   value={desc}
                   tabIndex={1}
+                  config={liveJoditConfig}
                   onBlur={(newContent) => setDesc(newContent)}
                 />
               </div>

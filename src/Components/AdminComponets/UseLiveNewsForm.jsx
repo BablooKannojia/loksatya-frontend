@@ -75,6 +75,52 @@ export function useLiveNewsForm({
             .replace(/-+$/, "");
     };
 
+    // Ek hi jagah se image upload — toolbar aur drag&drop dono isi
+    // function ko use karenge taaki Firebase URL hamesha aaye, local
+    // file:/// path kabhi editor me na jaaye.
+    // NOTE: drop event me 'this' Jodit instance se bind nahi hota,
+    // isliye hamesha 'editor' ref se hi actual instance liya ja raha hai.
+    const uploadLiveImagesToEditor = async (files) => {
+        if (!files || files.length === 0) return;
+        notify(`Uploading ${files.length} image(s)...`, "info");
+
+        let allOk = true;
+
+        for (const file of files) {
+            try {
+                const formData = new FormData();
+                formData.append("file", file);
+                const res = await axios.post(`${API_URL}/image`, formData);
+                const imgHtml = `
+                    <p>
+                        <img
+                            src="${res.data.image}"
+                            alt="Image"
+                            style="max-width:100%;height:auto;"
+                        />
+                    </p>
+                `;
+
+                const instance = editor.current;
+                if (instance && instance.s && typeof instance.s.insertHTML === "function") {
+                    instance.s.insertHTML(imgHtml);
+                } else if (instance && typeof instance.selection?.insertHTML === "function") {
+                    instance.selection.insertHTML(imgHtml);
+                } else if (instance) {
+                    instance.value = (instance.value || "") + imgHtml;
+                }
+            } catch (err) {
+                allOk = false;
+                console.error(err);
+                notify(`Failed to upload ${file.name}`, "error");
+            }
+        }
+
+        if (allOk) {
+            notify("Images Uploaded Successfully");
+        }
+    };
+
     const joditConfig = useMemo(
         () => ({
             readonly: false,
@@ -83,34 +129,27 @@ export function useLiveNewsForm({
             uploader: {
                 insertImageAsBase64URI: false,
                 customBuild: async function (data, form, files) {
-                    if (!files || files.length === 0) return;
-                    notify(`Uploading ${files.length} image(s)...`, "info");
-                    for (const file of files) {
-                        try {
-                            const formData = new FormData();
-                            formData.append("file", file);
-                            const res = await axios.post(
-                                `${API_URL}/image`,
-                                formData
-                            );
-                            this.s.insertHTML(`
-                                <p>
-                                    <img
-                                        src="${res.data.image}"
-                                        alt="Image"
-                                        style="max-width:100%;height:auto;"
-                                    />
-                                </p>
-                            `);
-                        } catch (err) {
-                            console.error(err);
-                            notify(
-                                `Failed to upload ${file.name}`,
-                                "error"
-                            );
+                    await uploadLiveImagesToEditor(files);
+                },
+            },
+            // Drag & drop Jodit ke default handler se local path/base64
+            // insert karta hai — isliye 'drop' ko khud intercept karke
+            // usi Firebase upload function se route kar rahe hain.
+            events: {
+                drop: function (event) {
+                    const dt = event.dataTransfer;
+                    const files = dt && dt.files;
+                    if (files && files.length > 0) {
+                        const isAllImages = Array.from(files).every((f) =>
+                            f.type.startsWith("image/")
+                        );
+                        if (isAllImages) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            uploadLiveImagesToEditor(files);
+                            return false;
                         }
                     }
-                    notify("Images Uploaded Successfully");
                 },
             },
         }),

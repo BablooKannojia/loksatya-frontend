@@ -72,6 +72,52 @@ export function useArticleForm({
             .replace(/^-+/, "")
             .replace(/-+$/, "");
 
+    // Ek hi jagah se image upload karne wala helper — toolbar aur drag&drop
+    // dono isi function ko call karenge taaki Firebase URL hamesha use ho,
+    // local file:/// path kabhi editor me na jaaye.
+    // NOTE: 'this' ka bharosa nahi kar sakte (drop event me Jodit 'this' ko
+    // editor instance se bind nahi karta), isliye hamesha 'editor' ref se
+    // hi actual Jodit instance liya jaa raha hai.
+    const uploadImagesToEditor = async (files) => {
+        if (!files || files.length === 0) return;
+        notify(`Uploading ${files.length} image(s)...`, "info");
+
+        let allOk = true;
+
+        for (let i = 0; i < files.length; i++) {
+            const formData = new FormData();
+            formData.append("file", files[i]);
+
+            try {
+                const res = await axios.post(`${API_URL}/image`, formData);
+                const imageUrl = res.data.image;
+                const imgHtml = `<p><img src="${imageUrl}" alt="Uploaded image" style="max-width:100%; height:auto;" /></p>`;
+
+                const instance = editor.current;
+                if (instance && instance.s && typeof instance.s.insertHTML === "function") {
+                    instance.s.insertHTML(imgHtml);
+                } else if (instance && typeof instance.selection?.insertHTML === "function") {
+                    instance.selection.insertHTML(imgHtml);
+                } else {
+                    // Editor instance abhi ready nahi hai — content ko
+                    // directly append kar do taaki image kho na jaaye
+                    console.warn("Jodit instance not ready, appending to value directly");
+                    if (instance) {
+                        instance.value = (instance.value || "") + imgHtml;
+                    }
+                }
+            } catch (err) {
+                allOk = false;
+                console.error("Image upload failed:", err);
+                notify(`Failed to upload ${files[i].name}`, "error");
+            }
+        }
+
+        if (allOk) {
+            notify("All images uploaded successfully!", "success");
+        }
+    };
+
     // Jodit editor ke andar multiple image upload — dono jagah 100% same tha
     const joditConfig = useMemo(
         () => ({
@@ -80,27 +126,28 @@ export function useArticleForm({
             uploader: {
                 insertImageAsBase64URI: false,
                 customBuild: async function (data, form, files) {
-                    if (!files || files.length === 0) return;
-
-                    notify(`Uploading ${files.length} image(s)...`, "info");
-
-                    for (let i = 0; i < files.length; i++) {
-                        const formData = new FormData();
-                        formData.append("file", files[i]);
-
-                        try {
-                            const res = await axios.post(`${API_URL}/image`, formData);
-                            const imageUrl = res.data.image;
-
-                            this.s.insertHTML(
-                                `<p><img src="${imageUrl}" alt="Uploaded image" style="max-width:100%; height:auto;" /></p>`
-                            );
-                        } catch (err) {
-                            console.error("Image upload failed:", err);
-                            notify(`Failed to upload ${files[i].name}`, "error");
+                    await uploadImagesToEditor(files);
+                },
+            },
+            // Drag & drop se aane wali images Jodit ka default handler
+            // (jo local file:/// path ya base64 daal deta hai) use karta
+            // hai — isliye 'drop' event ko khud intercept karke usi
+            // Firebase upload function se pass kar rahe hain.
+            events: {
+                drop: function (event) {
+                    const dt = event.dataTransfer;
+                    const files = dt && dt.files;
+                    if (files && files.length > 0) {
+                        const isAllImages = Array.from(files).every((f) =>
+                            f.type.startsWith("image/")
+                        );
+                        if (isAllImages) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            uploadImagesToEditor(files);
+                            return false;
                         }
                     }
-                    notify("All images uploaded successfully!", "success");
                 },
             },
         }),

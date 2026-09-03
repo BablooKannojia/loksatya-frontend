@@ -1,11 +1,40 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import axios from "axios";
 import dynamic from "next/dynamic";
 import { API_URL } from "../../../src/API";
 
 const JoditEditor = dynamic(() => import("jodit-react"), { ssr: false });
+
+// Editor ke andar images ko Firebase (via backend /image route) par
+// upload karke uska real URL insert karta hai — toolbar button aur
+// drag & drop dono isi function ko use karte hain.
+// NOTE: drop event me 'this' Jodit instance se bind nahi hota, isliye
+// editor instance ko 'editorRef' param se explicitly pass karte hain.
+const uploadEditorImages = async (editorRef, files) => {
+    if (!files || files.length === 0) return;
+    for (let i = 0; i < files.length; i++) {
+        const formData = new FormData();
+        formData.append("file", files[i]);
+        try {
+            const res = await axios.post(`${API_URL}/image`, formData);
+            const imageUrl = res.data.image;
+            const imgHtml = `<p><img src="${imageUrl}" alt="Uploaded image" style="max-width:100%; height:auto;" /></p>`;
+
+            const instance = editorRef.current;
+            if (instance && instance.s && typeof instance.s.insertHTML === "function") {
+                instance.s.insertHTML(imgHtml);
+            } else if (instance && typeof instance.selection?.insertHTML === "function") {
+                instance.selection.insertHTML(imgHtml);
+            } else if (instance) {
+                instance.value = (instance.value || "") + imgHtml;
+            }
+        } catch (err) {
+            console.error("Image upload failed:", err);
+        }
+    }
+};
 
 export default function AddLiveUpdate({ liveNewsId, onAdded }) {
     const [title, setTitle] = useState("");
@@ -13,6 +42,45 @@ export default function AddLiveUpdate({ liveNewsId, onAdded }) {
     const [postedBy, setPostedBy] = useState("");
     const [image, setImage] = useState(null);
     const [loading, setLoading] = useState(false);
+    const editor = useRef(null);
+
+    const joditConfig = useMemo(
+        () => ({
+            readonly: false,
+            height: 220,
+            placeholder: "Write update here...",
+            style: {
+                background: "#ffffff",
+                color: "#111827",
+            },
+            uploader: {
+                insertImageAsBase64URI: false,
+                customBuild: async function (data, form, files) {
+                    await uploadEditorImages(editor, files);
+                },
+            },
+            // Drag & drop ko intercept karke Firebase upload se route karo,
+            // warna Jodit default local file:/// path insert kar deta hai.
+            events: {
+                drop: function (event) {
+                    const dt = event.dataTransfer;
+                    const files = dt && dt.files;
+                    if (files && files.length > 0) {
+                        const isAllImages = Array.from(files).every((f) =>
+                            f.type.startsWith("image/")
+                        );
+                        if (isAllImages) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            uploadEditorImages(editor, files);
+                            return false;
+                        }
+                    }
+                },
+            },
+        }),
+        []
+    );
 
     // Login user ka email auto-fill karo (jaise UseLiveNewsForm me publishBy hota hai)
     useEffect(() => {
@@ -95,17 +163,10 @@ export default function AddLiveUpdate({ liveNewsId, onAdded }) {
 
             <div className="rounded-xl overflow-hidden border border-slate-700">
                 <JoditEditor
+                    ref={editor}
                     value={description}
                     onBlur={(content) => setDescription(content)}
-                    config={{
-                        readonly: false,
-                        height: 220,
-                        placeholder: "Write update here...",
-                        style: {
-                            background: "#ffffff",
-                            color: "#111827",
-                        },
-                    }}
+                    config={joditConfig}
                 />
             </div>
 
