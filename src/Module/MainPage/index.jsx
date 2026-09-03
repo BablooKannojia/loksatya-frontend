@@ -9,7 +9,7 @@ import PhotoGallery from "../../Components/Global/PhotoGallery";
 import VisualStories from "../../Components/Global/VisualStories";
 import HomeHeroSection from "../../Components/Global/BreakingLatest";
 import HeroSection from "../../Components/Global/HeroSection";
-import AllSectionArticle from "../../components/MainPage/SectionArticle";
+import AllSectionArticle from "../../Components/MainPage/SectionArticle";
 import { useHomeData } from "@/src/Context/HomeContext";
 import { useCommonData } from "../../Context/CommonContext";
 import { useRouter } from "next/navigation";
