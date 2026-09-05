@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import Providers from "./providers";
 import Header from "../src/Components/Global/Header";
 import Footer from "../src/Components/Global/Footer";
-// import Script from "next/script";
+import Script from "next/script";
 
 
 export default function RootLayout({ children }) {
@@ -18,7 +18,7 @@ export default function RootLayout({ children }) {
     <html lang="hi">
 
       {/* Google Analytics  */}
-      {/* <head>
+      <head>
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-8VK0YBCS2Y"
           strategy="afterInteractive"
@@ -32,7 +32,7 @@ export default function RootLayout({ children }) {
             gtag('config', 'G-8VK0YBCS2Y');
           `}
         </Script>
-      </head> */}
+      </head>
 
       <body>
         <Providers>
