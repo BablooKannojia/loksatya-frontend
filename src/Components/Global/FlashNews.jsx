@@ -46,10 +46,10 @@ export default function FlashNews() {
 
   return (
     <div className="w-full max-w-7xl mx-auto lg:px-4 px-2 my-2 lg:my-3 pt-2 lg:pt-4 font-devanagari box-border">
-      <div className="relative flex items-center justify-between h-[44px] lg:h-[46px] px-3.5 sm:px-5 lg:px-6 rounded-full bg-[#393939] text-white shadow-md overflow-hidden">
+      <div className="relative flex items-center justify-between h-[44px] lg:h-[46px] px-3.5 sm:px-5 lg:px-6 rounded-full bg-[#191919] text-white shadow-md overflow-hidden">
 
         <div className="flex items-center flex-shrink-0 select-none">
-          <span className="font-extrabold italic uppercase tracking-wider whitespace-nowrap text-[#D90429] text-[9px] sm:text-[11px] lg:text-[13px] animate-pulse">
+          <span className="font-extrabold italic uppercase tracking-wider whitespace-nowrap text-[#ff002c] text-[9px] sm:text-[11px] lg:text-[13px] animate-pulse">
             BREAKING NEWS
           </span>
 
