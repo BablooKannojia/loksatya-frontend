@@ -1,22 +1,18 @@
 'use client';
 
 import { useEffect } from 'react';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 
 export default function GoogleAnalytics() {
-    const pathname = usePathname();
-    const searchParams = useSearchParams();
+  const pathname = usePathname();
 
-    useEffect(() => {
-        if (!window.gtag) return;
+  useEffect(() => {
+    if (!window.gtag || !pathname) return;
 
-        const query = searchParams?.toString();
-        const pagePath = query ? `${pathname}?${query}` : pathname;
+    window.gtag('config', 'G-8VK0YBCS2Y', {
+      page_path: pathname,
+    });
+  }, [pathname]);
 
-        window.gtag('config', 'G-8VK0YBCS2Y', {
-            page_path: pagePath,
-        });
-    }, [pathname, searchParams]);
-
-    return null;
+  return null;
 }
