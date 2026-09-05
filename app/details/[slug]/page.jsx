@@ -47,48 +47,36 @@ function processDescription(rawHtml = "") {
 
 // ⚡ 3. Dynamic SEO Metadata
 export async function generateMetadata({ params }) {
-  const { slug } = await params;
-  const article = await getArticleDetails(slug);
+  const { slug } = await params; // Next.js 15+ me params async hai
+  const res = await fetch(`https://admin.loksatya.com/api/article?slug=${slug}`, {
+    cache: "no-store",
+  });
+  const data = await res.json();
+  const article = Array.isArray(data) ? data[0] : (data?.data?.[0] || data);
 
-  if (!article) {
-    return { title: "Article Not Found | Loksatya News" };
-  }
+  const title = article?.title || "Loksatya News";
+  const description = article?.metaDescription || article?.title || "";
 
-  const plainTextDescription = article.discription
-    ? article.discription.replace(/<[^>]*>/g, "").substring(0, 160) + "..."
-    : "Stay updated with the latest news on Loksatya.";
-
-  const shareUrl = `https://loksatya.com/details/${slug}`;
-  const imageUrl = article.image || "https://loksatya.com/assets/Logo-new-BNYCZvJK.PNG";
+  const imageUrl = article?.image?.startsWith("http")
+    ? article.image
+    : `https://loksatya.com${article?.image || "/default-og-image.jpg"}`;
 
   return {
-    title: `${article.title} | Loksatya News`,
-    description: plainTextDescription,
-    alternates: {
-      canonical: shareUrl,
-    },
+    title,
+    description,
     openGraph: {
-      title: article.title,
-      description: plainTextDescription,
-      url: shareUrl,
-      siteName: "LokSatya News",
-      images: [
-        {
-          url: imageUrl,
-          width: 1200,
-          height: 630,
-          alt: article.title,
-        },
-      ],
-      locale: "hi_IN",
+      title,
+      description,
+      url: `https://loksatya.com/details/${slug}`,
+      siteName: "Loksatya News",
+      images: [{ url: imageUrl, width: 1200, height: 630 }],
       type: "article",
     },
     twitter: {
       card: "summary_large_image",
-      title: article.title,
-      description: plainTextDescription,
+      title,
+      description,
       images: [imageUrl],
-      site: "@LokSatyaNews",
     },
   };
 }
