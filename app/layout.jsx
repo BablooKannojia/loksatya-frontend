@@ -7,6 +7,7 @@ import Providers from "./providers";
 import Header from "../src/Components/Global/Header";
 import Footer from "../src/Components/Global/Footer";
 import Script from "next/script";
+import GoogleAnalytics from "../src/Components/GoogleAnalytics";
 
 
 export default function RootLayout({ children }) {
@@ -36,6 +37,7 @@ export default function RootLayout({ children }) {
 
       <body>
         <Providers>
+          <GoogleAnalytics />
           {!isDashboard && <Header />}
 
           {children}
