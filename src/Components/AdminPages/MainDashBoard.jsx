@@ -58,7 +58,7 @@ export default function MainDashBoard({ accessList = [] }) {
 
   const dashboardCards = [
     {
-      title: "कुल आर्टिकल्स",
+      title: "अपलोड आर्टिकल्स",
       key: "upload",
       icon: FiUploadCloud,
       color: "text-blue-400",
@@ -66,7 +66,7 @@ export default function MainDashBoard({ accessList = [] }) {
       border: "border-blue-500/20",
     },
     {
-      title: "टॉप स्टोरीज",
+      title: "बड़ी खबरें",
       key: "topStories",
       icon: FiTrendingUp,
       color: "text-amber-400",

@@ -50,7 +50,7 @@ export default function TopStories() {
         >
           <h2 className="font-bold text-[18px] text-ink-soft hover:text-brand transition-colors flex items-center gap-2">
             <span className="h-4 w-1.5 bg-brand rounded-full"></span>
-            बड़ी खबरें
+            बड़ी खबर
           </h2>
         </div>
 

@@ -34,7 +34,7 @@ export default function SideBar({ accessList = [] }) {
     { name: 'Articles', path: '/dashboard/articles', icon: FiFileText, key: 'articles' },
     { name: 'Upload', path: '/dashboard/upload', icon: FiUploadCloud, key: 'upload' },
     { name: 'Breaking News', path: '/dashboard/breakingnews', icon: FiZap, key: 'breakingnews' },
-    { name: 'Top Stories', path: '/dashboard/topstories', icon: FiTrendingUp, key: 'topstories' },
+    { name: 'Big News', path: '/dashboard/topstories', icon: FiTrendingUp, key: 'topstories' },
     { name: 'Flash News', path: '/dashboard/flashnews', icon: FiAlertCircle, key: 'flashnews' },
     { name: 'Live News', path: '/dashboard/live-news', icon: FiRadio, key: 'livenews' },
     { name: 'Users', path: '/dashboard/users', icon: FiUsers, key: 'users' },
