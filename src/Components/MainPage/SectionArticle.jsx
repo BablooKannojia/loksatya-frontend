@@ -115,7 +115,7 @@ const SingleArticle = ({ category, combinedArticles = [] }) => {
       
       {/* 🏷️ Premium Category Header */}
       <div className="border-b border-gray-200 pb-2 mb-4 md:mb-6 flex items-center justify-between h-[34px]">
-        <Link href={`/itempage?item=${encodeURIComponent(category)}`}>
+        <Link href={`/category/${encodeURIComponent(category)}`}>
           <h2 className="font-extrabold text-[20px] md:text-[22px] text-gray-900 flex items-center gap-2.5 cursor-pointer hover:text-[#D90429] transition-colors tracking-tight">
             <span className="h-5 md:h-6 w-[4px] bg-[#D90429] rounded-full inline-block"></span>
             {category}

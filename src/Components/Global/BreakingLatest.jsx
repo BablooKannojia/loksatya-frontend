@@ -83,7 +83,7 @@ const HomeHeroSection = ({
                 onClick={() => navigation(`/breaking-news`)}
               >
                 <span className="h-5 w-1 bg-gray-950 rounded-full inline-block"></span>
-                {t("bn") || "बड़ी खबरें"}
+                खास खबरें
               </div>
             </div>
 
@@ -122,7 +122,7 @@ const HomeHeroSection = ({
           </div>
         </div>
 
-        {/* COLUMN 3: Opinion Poll (가장 CLS가 심했던 부분 수정) */}
+        {/* COLUMN 3: Opinion Poll */}
         <div className="lg:col-span-3 w-full h-full flex flex-col">
           {/* Header */}
           <div className="border-b border-gray-200 pb-2 mb-4 h-[38px]">
