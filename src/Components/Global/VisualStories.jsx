@@ -128,6 +128,7 @@ export default function VisualStories() {
                 <OptimizedImg
                   src={displayImage}
                   alt={displayText || story.title || "Story"}
+                  priority={true}
                   className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                 />
               </div>

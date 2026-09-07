@@ -1,4 +1,4 @@
-import React, { Suspense } from "react";
+import React, { Suspense, cache } from "react";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { IoTimeOutline, IoArrowBack, IoPersonOutline } from "react-icons/io5";
@@ -9,7 +9,7 @@ import SidebarLatestNews from "../../../src/Components/DetailsPage/SidebarLatest
 import RelatedNewsSection from "../../../src/Components/DetailsPage/RelatedNewsSection";
 import Comments from "../../../src/Components/DetailsPage/Comments";
 
-async function getArticleDetails(slug) {
+const getArticleDetails = cache(async function getArticleDetails(slug) {
   if (!slug) return null;
 
   try {
@@ -30,7 +30,7 @@ async function getArticleDetails(slug) {
     console.error("Error fetching article:", error);
     return null;
   }
-}
+});
 
 // ⚡ 2. Clean HTML String
 function processDescription(rawHtml = "") {
@@ -48,11 +48,7 @@ function processDescription(rawHtml = "") {
 // ⚡ 3. Dynamic SEO Metadata
 export async function generateMetadata({ params }) {
   const { slug } = await params; // Next.js 15+ me params async hai
-  const res = await fetch(`https://admin.loksatya.com/api/article?slug=${slug}`, {
-    cache: "no-store",
-  });
-  const data = await res.json();
-  const article = Array.isArray(data) ? data[0] : (data?.data?.[0] || data);
+  const article = await getArticleDetails(slug);
 
   const title = article?.title || "Loksatya News";
   const description = article?.metaDescription || article?.title || "";

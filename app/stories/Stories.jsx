@@ -132,7 +132,7 @@ export default function StoriesPage() {
                   </div>
                 ))
             ) : stories.length > 0 ? (
-              stories.map((item) => {
+              stories.map((item, index) => {
                 const itemSlug = getArticleSlug(item);
                 const cleanDescription = formatDescription(item.discription);
                 const formattedDate = formatDate(item.createdAt || item.updatedAt);
@@ -150,6 +150,7 @@ export default function StoriesPage() {
                           src={item.image}
                           alt={item.title || "News"}
                           fill
+                          priority={index < 4}
                           className="object-cover group-hover:scale-105 transition-transform duration-300"
                           sizes="(max-width: 768px) 35vw, 150px"
                         />

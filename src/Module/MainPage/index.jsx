@@ -14,9 +14,9 @@ import { useHomeData } from "@/src/Context/HomeContext";
 import { useCommonData } from "../../Context/CommonContext";
 import { useRouter } from "next/navigation";
 
-const MainPage = () => {
+const MainPage = ({initialSlider = null}) => {
   const router = useRouter();
-  const [homeSlider, setHomeSlider] = useState(null);
+  const [homeSlider, setHomeSlider] = useState(initialSlider);
   const [selectedOption, setSelectedOption] = useState(null);
   const [pollData, setPollData] = useState(null);
   const { categoryArticles, priorityArticles } = useCommonData();
@@ -26,32 +26,20 @@ const MainPage = () => {
     try {
       if (selectedOption !== null) return;
 
-      const res = await axios.post(
-        `${API_URL}/polls/${pollId}/vote`,
-        {
-          optionIndex,
-        }
-      );
+      const res = await axios.post(`${API_URL}/polls/${pollId}/vote`, {
+        optionIndex,
+      });
 
       setSelectedOption(optionIndex);
 
       const poll = res.data;
-
-      const totalVotes = poll.options.reduce(
-        (sum, item) => sum + item.votes,
-        0
-      );
-
+      const totalVotes = poll.options.reduce((sum, item) => sum + item.votes, 0);
       const updatedOptions = poll.options.map((item) => ({
         ...item,
-        percentage:
-          totalVotes === 0 ? 0 : (item.votes / totalVotes) * 100,
+        percentage: totalVotes === 0 ? 0 : (item.votes / totalVotes) * 100,
       }));
 
-      setPollData({
-        ...poll,
-        options: updatedOptions,
-      });
+      setPollData({ ...poll, options: updatedOptions });
     } catch (err) {
       console.error(err);
     }
@@ -60,11 +48,10 @@ const MainPage = () => {
   const fetchSlider = async () => {
     try {
       const response = await axios.get(`${API_URL}/article/slider`);
-
       if (response?.data?.success && response?.data?.data) {
         setHomeSlider(response.data.data);
       } else {
-        setHomeSlider(null)
+        setHomeSlider(null);
       }
     } catch (error) {
       console.error("Error fetching critical data:", error);
@@ -72,13 +59,14 @@ const MainPage = () => {
   };
 
   useEffect(() => {
-    fetchSlider();
-  }, []);
+   if (!initialSlider) {
+      fetchSlider();
+    }
+  }, [initialSlider]);
 
   useEffect(() => {
     if (homeData?.poll) {
       setPollData(homeData.poll);
-      setSelectedOption(null);
     }
   }, [homeData]);
 

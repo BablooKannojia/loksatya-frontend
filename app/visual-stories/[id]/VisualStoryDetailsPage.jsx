@@ -4,7 +4,6 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import axios from 'axios';
 import Image from 'next/image';
-import Link from 'next/link';
 import { API_URL } from '@/src/API';
 import {
   IoChevronBack,
@@ -53,6 +52,20 @@ export default function VisualStoryDetailsPage() {
   // Slides array extract
   const slides = storyData?.images || [];
   const currentSlide = slides[currentIndex];
+
+  // Agle/pichle slide ki image pehle se hi browser cache me preload kar do
+  // taaki click/swipe karte hi turant dikhe, koi visible delay na ho.
+  useEffect(() => {
+    if (!slides.length) return;
+    const preloadIndexes = [currentIndex + 1, currentIndex - 1];
+    preloadIndexes.forEach((idx) => {
+      const url = slides[idx]?.img;
+      if (url) {
+        const img = new window.Image();
+        img.src = url;
+      }
+    });
+  }, [currentIndex, slides]);
 
   // Slide Navigation Handlers
   const handleNext = useCallback(() => {
