@@ -546,9 +546,21 @@ const Articles = () => {
                                                             {/* Status */}
                                                             <td className="px-2 py-2.5 text-center">
                                                                 {isScheduled ? (
-                                                                    <span className="text-amber-500 text-[10px] font-semibold bg-amber-50 dark:bg-amber-500/10 px-2 py-0.5 rounded-full">
-                                                                        Scheduled
-                                                                    </span>
+                                                                    <div className="flex flex-col items-center gap-0.5">
+                                                                        <span className="text-amber-500 text-[10px] font-semibold bg-amber-50 dark:bg-amber-500/10 px-2 py-0.5 rounded-full">
+                                                                            Scheduled
+                                                                        </span>
+                                                                        {article.publishAt && (
+                                                                            <span className="text-[9px] text-amber-600/80 dark:text-amber-400/70 font-mono whitespace-nowrap">
+                                                                                {new Date(article.publishAt).toLocaleString("hi-IN", {
+                                                                                    day: "numeric",
+                                                                                    month: "short",
+                                                                                    hour: "2-digit",
+                                                                                    minute: "2-digit",
+                                                                                })}
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
                                                                 ) : (
                                                                     <button
                                                                         onClick={() => handleToggleStatus(article)}
