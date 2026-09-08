@@ -11,8 +11,6 @@ import {
   IoClose,
   IoShareSocialOutline,
   IoImagesOutline,
-  IoDocumentTextOutline,
-  IoCalendarOutline,
 } from 'react-icons/io5';
 
 export default function PhotoGalleryDetailsPage() {
@@ -23,20 +21,19 @@ export default function PhotoGalleryDetailsPage() {
   const [galleryData, setGalleryData] = useState(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [copied, setCopied] = useState(false);
 
-  // API Call Function
   const fetchGalleryDetails = useCallback(async () => {
     if (!photoId) return;
     try {
       setLoading(true);
       const response = await axios.get(`${API_URL}/photo?id=${photoId}`);
       const res = response.data;
-
-      // API Response normalization
       const data = Array.isArray(res?.data) ? res?.data[0] : res?.data || res;
       setGalleryData(data);
     } catch (error) {
       console.error('Error fetching photo gallery details:', error);
+      setGalleryData(null);
     } finally {
       setLoading(false);
     }
@@ -46,7 +43,6 @@ export default function PhotoGalleryDetailsPage() {
     fetchGalleryDetails();
   }, [fetchGalleryDetails]);
 
-  // Safe Image Extractor Helper
   const getImageUrl = (imgObj) => {
     if (!imgObj) return '/placeholder.jpg';
     return imgObj?.img || imgObj?.image || imgObj?.url || '/placeholder.jpg';
@@ -55,220 +51,209 @@ export default function PhotoGalleryDetailsPage() {
   const imagesList = galleryData?.images || [];
   const currentImageObj = imagesList[selectedIndex];
 
-  // Navigation Handlers
+  // Preload next/prev images
+  useEffect(() => {
+    if (!imagesList.length) return;
+    [selectedIndex + 1, selectedIndex - 1].forEach((idx) => {
+      const url = getImageUrl(imagesList[idx]);
+      if (url && url !== '/placeholder.jpg') {
+        const img = new window.Image();
+        img.src = url;
+      }
+    });
+  }, [selectedIndex, imagesList]);
+
   const handlePrev = useCallback(() => {
-    if (selectedIndex > 0) {
-      setSelectedIndex((prev) => prev - 1);
-    }
+    if (selectedIndex > 0) setSelectedIndex((prev) => prev - 1);
   }, [selectedIndex]);
 
   const handleNext = useCallback(() => {
-    if (selectedIndex < imagesList.length - 1) {
-      setSelectedIndex((prev) => prev + 1);
-    }
+    if (selectedIndex < imagesList.length - 1) setSelectedIndex((prev) => prev + 1);
   }, [selectedIndex, imagesList.length]);
 
-  // Keyboard Navigation
+  const handleClose = () => {
+    if (window.history.length > 1) {
+      router.back();
+    } else {
+      router.push('/');
+    }
+  };
+
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: galleryData?.title || 'Photo Gallery',
+        url: window.location.href,
+      });
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === 'ArrowLeft') handlePrev();
       if (e.key === 'ArrowRight') handleNext();
+      if (e.key === 'ArrowLeft') handlePrev();
       if (e.key === 'Escape') router.back();
     };
-
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handlePrev, handleNext, router]);
+  }, [handleNext, handlePrev, router]);
 
   if (loading) {
     return (
       <div className="w-full h-screen bg-gray-950 flex flex-col items-center justify-center text-white font-devanagari">
-        <div className="w-10 h-10 border-4 border-white/20 border-t-[#D90429] rounded-full animate-spin mb-4" />
+        <div className="w-12 h-12 border-4 border-white/20 border-t-[#D90429] rounded-full animate-spin mb-4" />
         <p className="text-sm font-medium text-gray-400">फोटो लोड हो रही है...</p>
       </div>
     );
   }
 
-  if (!galleryData) {
+  if (!galleryData || imagesList.length === 0) {
     return (
-      <div className="w-full h-screen bg-gray-950 flex flex-col items-center justify-center text-white font-devanagari">
-        <p className="text-lg font-semibold text-gray-300 mb-4">फोटो गैलरी नहीं मिली!</p>
+      <div className="w-full h-screen bg-gray-950 flex flex-col items-center justify-center text-white px-4 text-center font-devanagari">
+        <p className="text-lg font-bold mb-4">फोटो गैलरी नहीं मिली या डिलीट कर दी गई है।</p>
         <button
           onClick={() => router.back()}
-          className="px-5 py-2 bg-[#D90429] text-white rounded-xl text-sm font-bold cursor-pointer"
+          className="flex items-center gap-2 bg-[#D90429] hover:bg-[#b00320] px-5 py-2.5 rounded-xl font-semibold transition-all"
         >
-          वापस जाएं
+          <IoClose /> वापस जाएँ
         </button>
       </div>
     );
   }
 
-  // Formatting Date
-  const formattedDate = galleryData?.createdAt
-    ? new Date(galleryData.createdAt).toLocaleDateString('hi-IN', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-      })
-    : null;
-
   return (
-    <div className="w-full min-h-screen bg-gray-950 text-white flex flex-col font-devanagari select-none">
-      
-      {/* 1. TOP NAVBAR */}
-      <header className="sticky top-0 z-40 bg-gray-900/90 backdrop-blur-md border-b border-gray-800 px-4 py-3 flex items-center justify-between">
-        <button
-          onClick={() => router.back()}
-          className="flex items-center gap-2 px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded-full text-xs sm:text-sm font-medium transition-all cursor-pointer border border-gray-700"
-        >
-          <IoClose className="text-lg" /> बंद करें
-        </button>
+    <div className="w-full h-screen bg-gray-950 flex items-center justify-center overflow-hidden font-devanagari select-none">
 
-        <div className="flex items-center gap-2 max-w-[50%] sm:max-w-xl">
-          <span className="p-1.5 bg-[#D90429]/20 text-[#D90429] rounded-lg shrink-0">
-            <IoImagesOutline className="text-lg" />
-          </span>
-          <h1 className="text-xs sm:text-sm font-semibold text-gray-200 truncate">
-            {galleryData.title || 'फोटो गैलरी विवरण'}
-          </h1>
+      {/* Desktop Background Blur */}
+      <div className="absolute inset-0 opacity-20 blur-2xl pointer-events-none hidden md:block">
+        <Image
+          src={getImageUrl(currentImageObj)}
+          alt="bg-blur"
+          fill
+          unoptimized
+          className="object-cover"
+        />
+      </div>
+
+      {/* Main Frame (9:16 Story View) */}
+      <div className="relative w-full h-full md:max-w-[420px] md:h-[92vh] md:rounded-3xl overflow-hidden bg-black shadow-2xl flex flex-col justify-between border border-white/10">
+
+        {/* Background Image */}
+        <div className="absolute inset-0 z-0">
+          <Image
+            key={selectedIndex}
+            src={getImageUrl(currentImageObj)}
+            alt={currentImageObj?.text || galleryData?.title}
+            fill
+            unoptimized
+            priority
+            className="object-cover transition-opacity duration-300"
+            sizes="(max-width: 768px) 100vw, 420px"
+          />
+          <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black/80 via-black/40 to-transparent z-10" />
+          <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/95 via-black/60 to-transparent z-10" />
         </div>
 
-        <button
-          onClick={() => {
-            if (navigator.share) {
-              navigator.share({
-                title: galleryData?.title,
-                url: window.location.href,
-              });
-            }
-          }}
-          className="p-2 bg-gray-800 hover:bg-gray-700 rounded-full text-gray-300 transition-all cursor-pointer border border-gray-700"
-          title="शेयर करें"
-        >
-          <IoShareSocialOutline className="text-lg" />
-        </button>
-      </header>
+        {/* Top Header */}
+        <div className="relative z-20 p-3 sm:p-4 space-y-3">
 
-      {/* 2. MAIN CONTENT AREA (Split Layout: Left Image / Right Details) */}
-      <main className="flex-1 max-w-[1400px] w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 p-4 sm:p-6 lg:p-8">
-        
-        {/* LEFT COLUMN: Main Image Viewer & Thumbnail Controls (8 Cols) */}
-        <section className="lg:col-span-7 xl:col-span-8 flex flex-col justify-between space-y-4">
-          
-          {/* Main Large Image Container */}
-          <div className="relative w-full aspect-[4/3] sm:aspect-[16/10] bg-black rounded-2xl overflow-hidden border border-gray-800 flex items-center justify-center shadow-2xl">
-            
-            {/* Left Nav Arrow */}
-            {selectedIndex > 0 && (
-              <button
-                onClick={handlePrev}
-                className="absolute left-3 top-1/2 -translate-y-1/2 z-30 p-2.5 bg-black/60 hover:bg-[#D90429] text-white rounded-full transition-all cursor-pointer border border-white/10"
+          {/* Progress Bars */}
+          <div className="flex gap-1.5 w-full">
+            {imagesList.map((_, idx) => (
+              <div
+                key={idx}
+                className="h-1 flex-1 bg-white/30 rounded-full overflow-hidden backdrop-blur-xs"
               >
-                <IoChevronBack className="text-xl sm:text-2xl" />
-              </button>
-            )}
-
-            {/* Main Image */}
-            <Image
-              src={getImageUrl(currentImageObj)}
-              alt={currentImageObj?.text || galleryData?.title || 'Gallery View'}
-              fill
-              unoptimized
-              priority
-              className="object-contain"
-            />
-
-            {/* Right Nav Arrow */}
-            {selectedIndex < imagesList.length - 1 && (
-              <button
-                onClick={handleNext}
-                className="absolute right-3 top-1/2 -translate-y-1/2 z-30 p-2.5 bg-black/60 hover:bg-[#D90429] text-white rounded-full transition-all cursor-pointer border border-white/10"
-              >
-                <IoChevronForward className="text-xl sm:text-2xl" />
-              </button>
-            )}
-
-            {/* Photo Counter Badge */}
-            <div className="absolute bottom-3 left-3 z-20 bg-black/75 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold text-amber-400 border border-white/10">
-              फोटो {selectedIndex + 1} / {imagesList.length}
-            </div>
-          </div>
-
-          {/* Bottom Thumbnail Strip */}
-          {imagesList.length > 1 && (
-            <div className="flex items-center gap-2.5 overflow-x-auto py-2 px-1 no-scrollbar scroll-smooth">
-              {imagesList.map((img, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setSelectedIndex(idx)}
-                  className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden shrink-0 transition-all border-2 cursor-pointer ${
-                    idx === selectedIndex
-                      ? 'border-[#D90429] scale-105 opacity-100 shadow-md ring-2 ring-[#D90429]/40'
-                      : 'border-gray-800 opacity-40 hover:opacity-80'
+                <div
+                  className={`h-full bg-white transition-all duration-300 ${
+                    idx <= selectedIndex ? 'w-full' : 'w-0'
                   }`}
-                >
-                  <Image
-                    src={getImageUrl(img)}
-                    alt={`thumb-${idx}`}
-                    fill
-                    unoptimized
-                    className="object-cover"
-                  />
-                </button>
-              ))}
+                />
+              </div>
+            ))}
+          </div>
+
+          {/* Action Header */}
+          <div className="flex items-center justify-between text-white pt-1">
+            <button
+              onClick={handleClose}
+              className="p-2 bg-black/40 backdrop-blur-md rounded-full text-white hover:bg-black/60 transition-all cursor-pointer"
+            >
+              <IoClose className="text-xl" />
+            </button>
+
+            <div className="text-center px-2 flex-1 flex items-center justify-center gap-1.5">
+              <IoImagesOutline className="text-xs" />
+              <span className="text-[11px] font-bold tracking-wider uppercase bg-[#D90429] text-white px-2.5 py-0.5 rounded-full shadow-sm">
+                लोकसत्य फोटो गैलरी
+              </span>
             </div>
-          )}
 
-        </section>
-
-        {/* RIGHT COLUMN: Full Text & Content Details (4 Cols) */}
-        <section className="lg:col-span-5 xl:col-span-4 bg-gray-900/60 border border-gray-800 rounded-2xl p-5 sm:p-6 flex flex-col justify-between space-y-6">
-          
-          <div className="space-y-4">
-            
-            {/* Meta Info: Date Badge */}
-            {formattedDate && (
-              <div className="flex items-center gap-2 text-xs font-medium text-gray-400 border-b border-gray-800 pb-3">
-                <IoCalendarOutline className="text-base text-[#D90429]" />
-                <span>{formattedDate}</span>
-              </div>
-            )}
-
-            {/* Gallery Main Title */}
-            <h2 className="text-lg sm:text-2xl font-bold text-white leading-snug tracking-tight">
-              {galleryData.title}
-            </h2>
-
-            {/* Current Image Specific Content/Description */}
-            <div className="pt-2 border-t border-gray-800/80 space-y-2">
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-amber-400 uppercase tracking-wider">
-                <IoDocumentTextOutline className="text-sm" /> फ़ोटो विवरण ({selectedIndex + 1}/{imagesList.length}):
-              </div>
-
-              {currentImageObj?.text ? (
-                <p className="text-sm sm:text-base text-gray-300 leading-relaxed font-normal whitespace-pre-line bg-black/30 p-4 rounded-xl border border-gray-800/50">
-                  {currentImageObj.text}
-                </p>
-              ) : (
-                <p className="text-xs text-gray-500 italic bg-black/20 p-3 rounded-lg">
-                  इस फोटो के लिए कोई अलग विवरण उपलब्ध नहीं है।
-                </p>
+            <button
+              onClick={handleShare}
+              className="p-2 bg-black/40 backdrop-blur-md rounded-full text-white hover:bg-black/60 transition-all cursor-pointer relative"
+            >
+              <IoShareSocialOutline className="text-lg" />
+              {copied && (
+                <span className="absolute -bottom-8 right-0 bg-white text-gray-900 text-[10px] font-bold px-2 py-0.5 rounded shadow-lg whitespace-nowrap">
+                  लिंक कॉपी हो गया!
+                </span>
               )}
-            </div>
-
+            </button>
           </div>
+        </div>
 
-          {/* Footer Quick Navigation Info */}
-          <div className="pt-4 border-t border-gray-800 flex items-center justify-between text-xs text-gray-400">
-            <span>कीबोर्ड एरो (← →) से बदलें</span>
-            <span className="font-semibold text-gray-300">
-              {selectedIndex + 1} ऑफ {imagesList.length}
-            </span>
+        {/* Tap Hotspots */}
+        <div className="absolute inset-y-16 inset-x-0 z-20 flex justify-between pointer-events-auto">
+          <div
+            onClick={handlePrev}
+            className="w-1/3 h-full cursor-pointer opacity-0 hover:opacity-100 flex items-center justify-start pl-2 text-white/50"
+          >
+            {selectedIndex > 0 && <IoChevronBack className="text-3xl" />}
           </div>
+          <div
+            onClick={handleNext}
+            className="w-1/3 h-full cursor-pointer opacity-0 hover:opacity-100 flex items-center justify-end pr-2 text-white/50"
+          >
+            {selectedIndex < imagesList.length - 1 && (
+              <IoChevronForward className="text-3xl" />
+            )}
+          </div>
+        </div>
 
-        </section>
+        {/* Bottom Content */}
+        <div className="absolute inset-0 z-30 flex flex-col items-center justify-center text-center px-6 sm:px-8 pointer-events-none">
+          <span className="text-[11px] font-semibold text-amber-300 bg-amber-400/10 border border-amber-400/20 px-2.5 py-1 rounded-md inline-block">
+            फोटो {selectedIndex + 1} / {imagesList.length}
+          </span>
 
-      </main>
+          <p className="text-base sm:text-lg font-bold text-white leading-relaxed drop-shadow-md">
+            {currentImageObj?.text || galleryData?.title}
+          </p>
+        </div>
+
+      </div>
+
+      {/* Desktop External Arrows */}
+      <button
+        onClick={handlePrev}
+        disabled={selectedIndex === 0}
+        className="hidden md:flex absolute left-8 top-1/2 -translate-y-1/2 p-3 bg-white/10 hover:bg-white/20 text-white rounded-full backdrop-blur-md disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed transition-all"
+      >
+        <IoChevronBack className="text-2xl" />
+      </button>
+
+      <button
+        onClick={handleNext}
+        disabled={selectedIndex === imagesList.length - 1}
+        className="hidden md:flex absolute right-8 top-1/2 -translate-y-1/2 p-3 bg-white/10 hover:bg-white/20 text-white rounded-full backdrop-blur-md disabled:opacity-20 cursor-pointer disabled:cursor-not-allowed transition-all"
+      >
+        <IoChevronForward className="text-2xl" />
+      </button>
 
     </div>
   );

@@ -260,7 +260,7 @@ export default function VisualStoryDetailsPage() {
         </div>
 
         {/* Bottom Slide Content */}
-        <div className="relative z-30 p-5 sm:p-6 space-y-3">
+        <div className="absolute inset-0 z-30 flex flex-col items-center justify-center text-center px-6 sm:px-8 pointer-events-none">
           
           {/* Main Story Title (Shown prominently on 1st slide or small header) */}
           <span className="text-[11px] font-semibold text-amber-300 bg-amber-400/10 border border-amber-400/20 px-2.5 py-1 rounded-md inline-block">
