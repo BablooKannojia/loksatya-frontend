@@ -20,6 +20,17 @@ export default function ShareButtons({ shareUrl, title }) {
   const encodedUrl = encodeURIComponent(shareUrl);
   const encodedTitle = encodeURIComponent(title);
 
+  // Facebook Share Window Trigger
+  const handleFacebookShare = (e) => {
+    e.preventDefault();
+    const fbUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
+    window.open(
+      fbUrl,
+      "facebook-share-dialog",
+      "width=600,height=500,scrollbars=yes,resizable=yes"
+    );
+  };
+
   return (
     <div className="flex items-center gap-2">
       <span className="text-xs font-semibold text-gray-500 uppercase mr-1">Share:</span>
@@ -38,10 +49,9 @@ export default function ShareButtons({ shareUrl, title }) {
       {/* Facebook */}
       <a
         href={`https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`}
-        target="_blank"
-        rel="noopener noreferrer"
+        onClick={handleFacebookShare}
         aria-label="Share on Facebook"
-        className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm hover:opacity-90 transition-opacity"
+        className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm hover:opacity-90 transition-opacity cursor-pointer"
       >
         <FaFacebookF />
       </a>
