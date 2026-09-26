@@ -119,6 +119,14 @@ async function ArticleContent({ slug }) {
       })
     : "";
 
+  const formattedTime = article.createdAt
+    ? new Date(article.createdAt).toLocaleTimeString("hi-IN", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      })
+    : "";
+
   return (
     <>
       {/* Category / Topic */}
@@ -142,7 +150,10 @@ async function ArticleContent({ slug }) {
           </div>
           <div className="flex items-center gap-1 text-gray-500">
             <IoTimeOutline className="text-base" />
-            <span>{formattedDate}</span>
+            <span>
+              {formattedDate}
+              {formattedTime && ` • ${formattedTime}`}
+            </span>
           </div>
         </div>
 

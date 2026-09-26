@@ -68,6 +68,22 @@ export default function HeroSection({ sliderData = [] }) {
     return title.replace(/[/\%.?]/g, "").split(" ").join("-");
   };
 
+  const formatDateTime = (dateString) => {
+    if (!dateString) return "";
+    const d = new Date(dateString);
+    const datePart = d.toLocaleDateString("hi-IN", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+    const timePart = d.toLocaleTimeString("hi-IN", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+    return `${datePart} • ${timePart}`;
+  };
+
   const handleNavigation = (article) => {
     // LiveNews slider item ho to uske apne live-blog page pe le jao,
     // normal Article ho to arts wale details page pe
@@ -130,6 +146,11 @@ export default function HeroSection({ sliderData = [] }) {
             <h2 className="text-white text-base sm:text-xl md:text-2xl font-bold leading-snug hover:text-red-400 transition-colors duration-200 line-clamp-3 md:line-clamp-none">
               {mainArticle.title}
             </h2>
+            {formatDateTime(mainArticle.createdAt || mainArticle.publishAt) && (
+              <span className="block text-white/80 text-[11px] sm:text-xs font-medium mt-1.5 sm:mt-2">
+                {formatDateTime(mainArticle.createdAt || mainArticle.publishAt)}
+              </span>
+            )}
           </div>
         </div>
       )}
@@ -191,6 +212,11 @@ export default function HeroSection({ sliderData = [] }) {
                   <p className="text-white text-xs sm:text-sm font-semibold line-clamp-2 leading-snug hover:text-red-400 transition-colors duration-200 whitespace-normal">
                     {article.title}
                   </p>
+                  {formatDateTime(article.createdAt || article.publishAt) && (
+                    <span className="block text-white/80 text-[10px] font-medium mt-1">
+                      {formatDateTime(article.createdAt || article.publishAt)}
+                    </span>
+                  )}
                 </div>
               </div>
             ))}

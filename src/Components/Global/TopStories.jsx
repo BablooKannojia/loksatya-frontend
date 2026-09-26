@@ -12,6 +12,22 @@ export default function TopStories() {
 
   const topStories = homeData?.topStories || [];
 
+  const formatDateTime = (dateString) => {
+    if (!dateString) return "";
+    const d = new Date(dateString);
+    const datePart = d.toLocaleDateString("hi-IN", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+    const timePart = d.toLocaleTimeString("hi-IN", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+    return `${datePart} • ${timePart}`;
+  };
+
   if (loading) {
     return (
       <div className="w-full lg:p-4 py-4 bg-white rounded-lg shadow-sm font-devanagari min-h-[620px]">
@@ -36,7 +52,7 @@ export default function TopStories() {
   if (topStories.length === 0) return null;
 
   const sortedStories = [...topStories]
-    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .sort((a, b) => new Date(b.createdAt || b.updatedAt || b.publishAt) - new Date(a.createdAt || a.updatedAt || a.publishAt))
     .slice(0, 6);
 
   return (
@@ -67,6 +83,7 @@ export default function TopStories() {
                   image={data?.image}
                   wid="w-[45%]"
                   text={data?.title}
+                  date={formatDateTime(data?.createdAt || data?.updatedAt || data?.publishAt)}
                 />
               </div>
             );

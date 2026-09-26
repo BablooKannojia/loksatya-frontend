@@ -110,6 +110,39 @@ const SingleArticle = ({ category, combinedArticles = [] }) => {
     return element?.title?.replace(/[%.?]/g, "").split(" ").join("-") || "news";
   };
 
+  const formatDateTime = (dateString) => {
+    if (!dateString) return "";
+    const d = new Date(dateString);
+    if (isNaN(d.getTime())) return "";
+    const datePart = d.toLocaleDateString("hi-IN", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+    const timePart = d.toLocaleTimeString("hi-IN", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+    return `${datePart} • ${timePart}`;
+  };
+
+  const getArticleDate = (article) => {
+    const explicit =
+      article?.createdAt || article?.updatedAt || article?.publishAt || article?.date;
+    if (explicit) return explicit;
+
+    // 🕒 आखिरी सहारा: MongoDB ObjectId के पहले 4 बाइट्स में creation timestamp
+    // encoded होता है — अगर article में कोई भी date field नहीं है (पुराना/
+    // migrate किया हुआ data), तब भी यहाँ से सही तारीख निकल आएगी।
+    const id = article?._id;
+    if (id && typeof id === "string" && id.length === 24) {
+      const seconds = parseInt(id.substring(0, 8), 16);
+      if (!isNaN(seconds)) return new Date(seconds * 1000);
+    }
+    return null;
+  };
+
   return (
     <div className="w-full bg-white mb-6 md:mb-8 min-h-[300px]">
       
@@ -138,6 +171,7 @@ const SingleArticle = ({ category, combinedArticles = [] }) => {
               height="100%"
               width="100%"
               border="rounded-sm"
+              date={formatDateTime(getArticleDate(featuredArticle))}
             />
           </div>
         ) : (
@@ -169,6 +203,11 @@ const SingleArticle = ({ category, combinedArticles = [] }) => {
                 <span className="text-[13.5px] sm:text-[14px] font-bold text-gray-900 line-clamp-2 sm:line-clamp-3 leading-snug group-hover:text-[#D90429] transition-colors break-words">
                   {element?.title}
                 </span>
+                {formatDateTime(getArticleDate(element)) && (
+                  <span className="text-[11px] text-gray-400 font-medium mt-1">
+                    {formatDateTime(getArticleDate(element))}
+                  </span>
+                )}
               </div>
             </div>
           ))}

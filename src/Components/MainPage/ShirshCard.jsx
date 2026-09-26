@@ -27,15 +27,15 @@ const ShirshCard = ({ text, image, OnPress, id, wid = "w-[40%]", date }) => {
       </div>
 
       {/* 2. टेक्स्ट और मेटा डेटा कंटेनर */}
-      <div className="flex flex-col justify-between flex-1 py-0.5">
+      <div className="flex flex-col justify-center flex-1 py-0.5">
         {/* न्यूज़ हेडिंग (अधिकतम 3 लाइनों में ट्रंकेट, होवर पर रेड कलर ट्रांज़िशन) */}
-        <h3 className="text-[14px] leading-[1.35] font-bold text-gray-900 group-hover:text-[#D90429] transition-colors duration-200 line-clamp-3">
+        <h3 className="text-[13px] sm:text-[14px] leading-[1.35] font-bold text-gray-900 group-hover:text-[#D90429] transition-colors duration-200 line-clamp-2">
           {text || '"India Have Better...": Sri Lanka Captain Honest World Cup Admission'}
         </h3>
         
         {/* तारीख / समय */}
         {date && (
-          <span className="text-[11px] font-semibold text-gray-400 mt-1 select-none">
+          <span className="block text-[11px] font-semibold text-gray-400 mt-1 select-none">
             {date}
           </span>
         )}

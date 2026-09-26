@@ -19,6 +19,22 @@ export default function PhotoGallery() {
 
   const photos = homeData?.photos || [];
 
+  const formatDateTime = (dateString) => {
+    if (!dateString) return "";
+    const d = new Date(dateString);
+    if (isNaN(d.getTime())) return "";
+    const datePart = d.toLocaleDateString("hi-IN", {
+      day: "numeric",
+      month: "short",
+    });
+    const timePart = d.toLocaleTimeString("hi-IN", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+    return `${datePart} • ${timePart}`;
+  };
+
   const checkScrollLimits = () => {
     if (scrollRef.current) {
       const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
@@ -47,15 +63,15 @@ export default function PhotoGallery() {
   // 1️⃣ 0 CLS: लोडिंग स्टेट में सादे स्केलेटन की जगह परफेक्ट हाइट वाला लेआउट प्लेसहोल्डर
   if (loading) {
     return (
-      <div className="w-full max-w-7xl mx-auto px-5 my-8 font-devanagari min-h-[305px]">
+      <div className="w-full max-w-7xl mx-auto px-5 my-8 font-devanagari min-h-[320px]">
         {/* हेडर स्केलेटन */}
         <div className="border-b-2 border-gray-150 pb-2 mb-5 h-[38px] flex items-center">
           <div className="h-6 bg-gray-200 rounded w-40 animate-pulse"></div>
         </div>
         {/* कार्ड्स स्केलेटन */}
-        <div className="flex gap-5 overflow-hidden min-h-[247px]">
+        <div className="flex gap-5 overflow-hidden min-h-[262px]">
           {[1, 2, 3, 4, 5].map((n) => (
-            <div key={n} className="shrink-0 w-56 bg-white rounded-xl border border-gray-100 p-0 overflow-hidden space-y-3 h-[245px]">
+            <div key={n} className="shrink-0 w-56 bg-white rounded-xl border border-gray-100 p-0 overflow-hidden space-y-3 h-[262px]">
               <div className="w-full h-36 bg-gray-200 animate-pulse"></div>
               <div className="p-3 space-y-2">
                 <div className="h-4 bg-gray-200 rounded w-full animate-pulse"></div>
@@ -72,7 +88,7 @@ export default function PhotoGallery() {
   if (!loading && photos.length === 0) return null;
 
   return (
-    <div id="Photos" className="relative w-full max-w-7xl mx-auto px-5 my-8 font-devanagari group/section min-h-[305px]">
+    <div id="Photos" className="relative w-full max-w-7xl mx-auto px-5 my-8 font-devanagari group/section min-h-[320px]">
       
       {/* सेक्शन हेडिंग */}
       <div className="border-b-2 border-[#D90429] pb-2 mb-5 flex items-center justify-between h-[38px]">
@@ -111,7 +127,7 @@ export default function PhotoGallery() {
       {/* हॉरिजॉन्तल स्क्रॉल कंटेनर - Fixed dimensions to stop dynamic shifting */}
       <div 
         ref={scrollRef} 
-        className="flex overflow-x-auto gap-5 pb-4 scroll-smooth snap-x snap-mandatory scrollbar-none min-h-[247px] content-start"
+        className="flex overflow-x-auto gap-5 pb-4 scroll-smooth snap-x snap-mandatory scrollbar-none min-h-[262px] content-start"
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
         {photos.map((img) => {
@@ -125,7 +141,7 @@ export default function PhotoGallery() {
           return (
             <div 
               key={img._id} 
-              className="shrink-0 w-56 snap-start group bg-white rounded-xl overflow-hidden border border-gray-150 shadow-sm hover:shadow-md transition-all duration-300 h-[245px] box-border"
+              className="shrink-0 w-56 snap-start group bg-white rounded-xl overflow-hidden border border-gray-150 shadow-sm hover:shadow-md transition-all duration-300 h-[262px] box-border"
             >
               {/* इमेज लिंक (Fixed aspect box) */}
               <Link href={`/photo-gallery/${img?._id}`} className="block w-full relative h-36 overflow-hidden bg-gray-100">
@@ -155,6 +171,11 @@ export default function PhotoGallery() {
                     <span>{displayCount}</span>
                   </div>
                 </div>
+                {formatDateTime(img?.createdAt) && (
+                  <div className="text-[10px] font-medium text-gray-400">
+                    {formatDateTime(img?.createdAt)}
+                  </div>
+                )}
               </div>
             </div>
           );

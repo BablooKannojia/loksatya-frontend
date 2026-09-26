@@ -92,6 +92,14 @@ export default function LiveNewsPage() {
         })
         : "";
 
+    const formattedTime = news?.updatedAt || news?.createdAt
+        ? new Date(news.updatedAt || news.createdAt).toLocaleTimeString("hi-IN", {
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+        })
+        : "";
+
     return (
         <div className="max-w-7xl mx-auto px-4 py-6 md:py-10">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -134,7 +142,10 @@ export default function LiveNewsPage() {
                                     </div>
                                     <div className="flex items-center gap-1 text-gray-500">
                                         <IoTimeOutline className="text-base" />
-                                        <span>{formattedDate}</span>
+                                        <span>
+                                            {formattedDate}
+                                            {formattedTime && ` • ${formattedTime}`}
+                                        </span>
                                     </div>
                                 </div>
 

@@ -54,10 +54,17 @@ export default function TopStoriesClient() {
 
   const formatDate = (dateString) => {
     if (!dateString) return "";
-    return new Date(dateString).toLocaleDateString("hi-IN", {
+    const d = new Date(dateString);
+    const datePart = d.toLocaleDateString("hi-IN", {
       day: "numeric",
       month: "short",
     });
+    const timePart = d.toLocaleTimeString("hi-IN", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+    return `${datePart} • ${timePart}`;
   };
 
   const handlePageChange = (newPage) => {
