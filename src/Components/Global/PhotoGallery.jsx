@@ -171,11 +171,11 @@ export default function PhotoGallery() {
                     <span>{displayCount}</span>
                   </div>
                 </div>
-                {/* {formatDateTime(img?.createdAt) && (
+                {formatDateTime(img?.createdAt) && (
                   <div className="text-[10px] font-medium text-gray-400">
                     {formatDateTime(img?.createdAt)}
                   </div>
-                )} */}
+                )}
               </div>
             </div>
           );

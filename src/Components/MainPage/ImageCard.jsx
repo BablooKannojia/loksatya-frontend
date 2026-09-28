@@ -70,11 +70,11 @@ const ImageCard = ({
           <p className="text-white font-bold text-[15px] sm:text-[16px] leading-snug line-clamp-2">
             {text}
           </p>
-          {/* {date && (
+          {date && (
             <span className="text-white/80 text-[11px] sm:text-xs font-medium mt-1.5">
               {date}
             </span>
-          )} */}
+          )}
         </div>
       )}
     </div>

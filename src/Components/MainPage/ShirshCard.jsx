@@ -34,11 +34,11 @@ const ShirshCard = ({ text, image, OnPress, id, wid = "w-[40%]", date }) => {
         </h3>
         
         {/* तारीख / समय */}
-        {/* {date && (
+        {date && (
           <span className="block text-[11px] font-semibold text-gray-400 mt-1 select-none">
             {date}
           </span>
-        )} */}
+        )}
       </div>
     </div>
   );
