@@ -7,8 +7,10 @@ import { OnEdit as onEditContext } from "../../Context/index";
 import { API_URL } from "../../API";
 import {
     isValidTweetUrl,
-    buildTweetEmbedHtml,
-    ensureTwitterWidgetsScript,
+    buildTweetEditorHtml,
+    toPublishHtml,
+    toEditorHtml,
+    renderTweetsIn,
 } from "./TwitterEmbed";
 
 export function useArticleForm({
@@ -55,13 +57,35 @@ export function useArticleForm({
     const [scheduleDateTime, setScheduleDateTime] = useState("");
     const [key, setKey] = useState(0);
     const [toastMessage, setToastMessage] = useState({ text: "", type: "" });
+    // Preview & Publish dabane par koi field adhoora ho to yahan message rehta hai
+    // (toast 3 sec me gayab ho jaata tha, staff ko laga button kaam nahi kar raha).
+    const [formError, setFormError] = useState("");
+
+    // Tweet URL ke liye in-page popup (window.prompt kai browsers me block ho jaata hai)
+    const [tweetModalOpen, setTweetModalOpen] = useState(false);
+    const [tweetUrlInput, setTweetUrlInput] = useState("");
+    const [tweetError, setTweetError] = useState("");
 
     const inputRef = useRef(null);
     const editor = useRef(null);
 
+    const toastTimer = useRef(null);
     const notify = (text, type = "info") => {
         setToastMessage({ text, type });
-        setTimeout(() => setToastMessage({ text: "", type: "" }), 3000);
+        // pichla timer cancel karo, warna purana timer naye toast ko jaldi hata deta tha
+        if (toastTimer.current) clearTimeout(toastTimer.current);
+        toastTimer.current = setTimeout(
+            () => setToastMessage({ text: "", type: "" }),
+            type === "warning" || type === "error" ? 6000 : 3000
+        );
+    };
+
+    // Editor ka asli current HTML. `desc` state sirf blur par update hota hai, isliye
+    // click ke time stale ho sakta hai — hamesha editor se seedha padho.
+    const getEditorHtml = () => {
+        const inst = editor.current;
+        if (inst && typeof inst.value === "string") return inst.value;
+        return desc || "";
     };
 
     const createSlugText = (text) =>
@@ -191,28 +215,53 @@ export function useArticleForm({
     };
 
     // Article content me ek ya multiple Twitter/X post embed karne ke liye.
-    // Baar baar call karke jitne chahiye utne tweet daale ja sakte hain.
+    // Button dabane par popup khulta hai; baar baar karke jitne chahiye utne tweet daale ja sakte hain.
     const insertTweetEmbed = () => {
-        const url = window.prompt("Tweet ya X post ka URL paste karein:");
-        if (!url) return;
+        try {
+            editor.current?.s?.save?.(); // cursor ki jagah yaad rakho
+        } catch (e) {
+            /* ignore */
+        }
+        setTweetUrlInput("");
+        setTweetError("");
+        setTweetModalOpen(true);
+    };
 
+    const closeTweetModal = () => {
+        try {
+            editor.current?.s?.restore?.();
+        } catch (e) {
+            /* ignore */
+        }
+        setTweetModalOpen(false);
+    };
+
+    const confirmTweetEmbed = () => {
+        const url = tweetUrlInput.trim();
+        if (!url) {
+            setTweetError("Tweet/X post ka link paste karein.");
+            return;
+        }
         if (!isValidTweetUrl(url)) {
-            notify("Sahi Twitter/X post ka URL daaliye (status link).", "warning");
+            setTweetError("Sahi Twitter/X post ka link daaliye (jaise https://x.com/user/status/123...).");
             return;
         }
 
-        const embedHtml = buildTweetEmbedHtml(url);
+        const embedHtml = buildTweetEditorHtml(url);
         const instance = editor.current;
 
         if (instance && instance.s && typeof instance.s.insertHTML === "function") {
             instance.s.insertHTML(embedHtml);
+            setdesc(getEditorHtml());
         } else {
             // Editor instance abhi ready nahi hai to seedha content me jod do
-            setdesc((prev) => `${prev || ""}${embedHtml}`);
+            setdesc(`${getEditorHtml()}${embedHtml}`);
         }
 
-        ensureTwitterWidgetsScript();
-        notify("Tweet/X post embed add ho gaya!", "success");
+        setTweetModalOpen(false);
+        setTweetUrlInput("");
+        setTweetError("");
+        notify("Tweet/X post add ho gaya! Asli tweet Preview me dikhega.", "success");
     };
 
     // Article edit data + tags + categories + user info — sab ek hi effect me
@@ -223,7 +272,7 @@ export function useArticleForm({
                 if (!data) return;
                 setTitle(data.title || "");
                 setTopic(data.topic || "");
-                setdesc(data.discription || "");
+                setdesc(toEditorHtml(data.discription || ""));
                 setKeyword(data.keyWord || []);
                 setImg(data.image || null);
                 setSubCategory(data.subCategory || "");
@@ -375,26 +424,46 @@ export function useArticleForm({
     }, [Topic]);
 
     const showVerifyModal = () => {
-        if (!img) return notify("Please upload an image.", "warning");
-        if (!title.trim()) return notify("Please enter a headline.", "warning");
-        if (!desc.trim())
-            return notify("Please enter description content.", "warning");
-        if (!Topic) return notify("Please select a category.", "warning");
-        if (!keyword || keyword.length === 0)
-            return notify("Please select or add at least one tag.", "warning");
-        if (!reported)
-            return notify("Please select who reported this.", "warning");
-        if (!publish) return notify("Please enter publisher information.", "warning");
-        if (!slug.trim()) return notify("Please generate a slug.", "warning");
+        // Editor se latest content lo (blur ka wait mat karo)
+        const editorHtml = getEditorHtml();
+        setdesc(editorHtml);
+        const publishHtml = toPublishHtml(editorHtml);
+        const plainText = publishHtml
+            .replace(/<[^>]*>/g, "")
+            .replace(/&nbsp;/g, " ")
+            .trim();
+        const hasMedia = /<(img|iframe|video|blockquote)\b/i.test(publishHtml);
 
+        const fail = (msg) => {
+            setFormError(msg);
+            notify(msg, "warning");
+        };
+
+        if (!img) return fail("Please upload an image.");
+        if (!title.trim()) return fail("Please enter a headline.");
+        if (!plainText && !hasMedia) return fail("Please enter description content.");
+        if (!Topic) return fail("Please select a category.");
+        if (!keyword || keyword.length === 0)
+            return fail("Please select or add at least one tag.");
+        if (!reported) return fail("Please select who reported this.");
+        if (!publish)
+            return fail(
+                "Publisher info load nahi hui — page refresh karke dobara try karein (ya logout/login karein)."
+            );
+        if (!slug.trim())
+            return fail(
+                "Slug khaali hai — Slug box me English me slug likhein (Hindi headline se slug apne aap nahi banta)."
+            );
+
+        setFormError("");
         setIsVerifyModalOpen(true);
         setTimeout(() => {
             const previewElement = document.getElementById("preview");
             if (previewElement) {
-                previewElement.innerHTML = desc;
-                ensureTwitterWidgetsScript();
+                previewElement.innerHTML = publishHtml;
+                renderTweetsIn(previewElement);
             }
-        }, 0);
+        }, 50);
     };
 
     const resetForm = () => {
@@ -416,11 +485,12 @@ export function useArticleForm({
         setOnEdit(false);
         setScheduleDateTime("");
         setSearchTag("");
+        setFormError("");
     };
 
     const buildPayload = (imageUrl, extra = {}) => ({
         title,
-        discription: desc,
+        discription: toPublishHtml(getEditorHtml()),
         topic: Topic,
         keyWord: keyword,
         language: Language,
@@ -438,6 +508,7 @@ export function useArticleForm({
     });
 
     const onUpload = async (isScheduled = false) => {
+        if (publishLoading || scheduleLoading) return; // double click guard
         if (isScheduled) setScheduleLoading(true);
         else setPublishLoading(true);
         setLoading(true);
@@ -445,7 +516,7 @@ export function useArticleForm({
         try {
             const formdata = new FormData();
             formdata.append("file", img, img.name);
-            const imageRes = await axios.post(`${API_URL}/image`, formdata);
+            const imageRes = await axios.post(`${API_URL}/image`, formdata, { timeout: 120000 });
 
             const publishAt =
                 enableScheduling && isScheduled && scheduleDateTime
@@ -461,7 +532,8 @@ export function useArticleForm({
 
             await axios.post(
                 `${API_URL}/article/${localStorage.getItem("id")}`,
-                payload
+                payload,
+                { timeout: 60000 }
             );
 
             notify(
@@ -475,7 +547,12 @@ export function useArticleForm({
             setIsVerifyModalOpen(false);
         } catch (err) {
             console.error("Upload error:", err);
-            notify("Failed to publish article.", "error");
+            notify(
+                err?.code === "ECONNABORTED"
+                    ? "Server se jawab nahi aaya (timeout). Internet check karke dobara Publish dabayein."
+                    : "Failed to publish article.",
+                "error"
+            );
         } finally {
             setPublishLoading(false);
             setScheduleLoading(false);
@@ -492,11 +569,11 @@ export function useArticleForm({
             if (Update && img instanceof File) {
                 const formdata = new FormData();
                 formdata.append("file", img, img.name);
-                const imageRes = await axios.post(`${API_URL}/image`, formdata);
+                const imageRes = await axios.post(`${API_URL}/image`, formdata, { timeout: 120000 });
                 finalImg = imageRes.data.image;
             }
 
-            await axios.put(`${API_URL}/article/${editId ?? id}`, buildPayload(finalImg));
+            await axios.put(`${API_URL}/article/${editId ?? id}`, buildPayload(finalImg), { timeout: 60000 });
 
             notify("Article updated successfully!", "success");
             resetForm();
@@ -566,6 +643,12 @@ export function useArticleForm({
         addItem,
         handleTagToggle,
         insertTweetEmbed,
+        tweetModalOpen,
+        tweetUrlInput, setTweetUrlInput,
+        tweetError,
+        closeTweetModal,
+        confirmTweetEmbed,
+        formError,
         showVerifyModal,
         onUpload,
         onEditHandle,

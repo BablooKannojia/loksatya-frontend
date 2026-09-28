@@ -415,14 +415,71 @@ export default function ArticleFormBase({
                         </label>
                     </div>
 
+                    <div className="flex flex-col items-end gap-2">
+                    {f.formError && (
+                        <p
+                            role="alert"
+                            className="max-w-md text-right text-sm font-semibold text-amber-300 bg-amber-500/10 border border-amber-500/40 rounded-lg px-3 py-2"
+                        >
+                            ⚠️ {f.formError}
+                        </p>
+                    )}
                     <button
+                        type="button"
                         onClick={f.showVerifyModal}
                         className="px-8 py-3 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/30 transition-all duration-200 hover:scale-[1.02]"
                     >
                         Preview & Publish
                     </button>
+                    </div>
                 </div>
             </div>
+
+            {/* Tweet URL popup */}
+            {f.tweetModalOpen && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
+                    <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4">
+                        <h2 className="text-lg font-bold text-slate-100">𝕏 Tweet / Post embed karein</h2>
+                        <input
+                            type="url"
+                            autoFocus
+                            value={f.tweetUrlInput}
+                            onChange={(e) => f.setTweetUrlInput(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                    e.preventDefault();
+                                    f.confirmTweetEmbed();
+                                }
+                                if (e.key === "Escape") f.closeTweetModal();
+                            }}
+                            placeholder="https://x.com/username/status/123456789"
+                            className="w-full p-3 bg-slate-950 border border-slate-700 focus:border-sky-500 rounded-lg text-slate-100 text-sm focus:outline-none"
+                        />
+                        {f.tweetError && (
+                            <p className="text-sm text-amber-300">{f.tweetError}</p>
+                        )}
+                        <p className="text-xs text-slate-400">
+                            Editor me link wala box dikhega; asli tweet &quot;Preview &amp; Publish&quot; me aur site par dikhega.
+                        </p>
+                        <div className="flex justify-end gap-3">
+                            <button
+                                type="button"
+                                onClick={f.closeTweetModal}
+                                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-sm font-semibold text-slate-300"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={f.confirmTweetEmbed}
+                                className="px-5 py-2 bg-sky-600 hover:bg-sky-500 rounded-lg text-sm font-bold text-white"
+                            >
+                                Insert
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Modal Popup */}
             {f.isVerifyModalOpen && (
