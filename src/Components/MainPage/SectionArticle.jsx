@@ -203,11 +203,11 @@ const SingleArticle = ({ category, combinedArticles = [] }) => {
                 <span className="text-[13.5px] sm:text-[14px] font-bold text-gray-900 line-clamp-2 sm:line-clamp-3 leading-snug group-hover:text-[#D90429] transition-colors break-words">
                   {element?.title}
                 </span>
-                {formatDateTime(getArticleDate(element)) && (
+                {/* {formatDateTime(getArticleDate(element)) && (
                   <span className="text-[11px] text-gray-400 font-medium mt-1">
                     {formatDateTime(getArticleDate(element))}
                   </span>
-                )}
+                )} */}
               </div>
             </div>
           ))}

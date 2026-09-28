@@ -52,11 +52,11 @@ const NewsCard = ({ data, onPress }) => {
         <h3 className="text-white text-[14px] font-bold leading-snug line-clamp-2 group-hover:text-red-100 transition-colors">
           {data?.title || "International Aid Arrives In Flood-Hit Libya As More Bodies Wash Ashore"}
         </h3>
-        {formattedDate && (
+        {/* {formattedDate && (
           <span className="block text-[11px] text-gray-200 font-medium mt-1.5">
             {formattedDate}
           </span>
-        )}
+        )} */}
       </div>
     </div>
   );
