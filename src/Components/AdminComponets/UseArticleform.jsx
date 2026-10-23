@@ -96,6 +96,75 @@ export function useArticleForm({
             .replace(/^-+/, "")
             .replace(/-+$/, "");
 
+    // ---- Temporary (blob:/data:) images ko permanent URL me badalna ----
+    // Paste / drag se kabhi kabhi image blob:https://... URL ke saath editor me aa jaati
+    // hai. Wo URL sirf usi tab me tab tak chalta hai jab tak page reload na ho, isliye
+    // save hone ke baad edit page par ERR_FILE_NOT_FOUND aata tha. Yahan hum aisi har
+    // image ko server par upload karke asli URL laga dete hain.
+    const isTempSrc = (src) => /^(blob:|data:image\/)/i.test(src || "");
+    const tempUploadCache = useRef(new Map()); // temp src -> permanent url
+
+    const uploadTempSrc = async (src) => {
+        if (tempUploadCache.current.has(src)) return tempUploadCache.current.get(src);
+        const resp = await fetch(src); // blob: same-origin hai, isliye fetch chalega
+        const blob = await resp.blob();
+        const ext = (blob.type.split("/")[1] || "png").replace("+xml", "");
+        const file = new File([blob], `pasted-${Date.now()}.${ext}`, {
+            type: blob.type || "image/png",
+        });
+        const fd = new FormData();
+        fd.append("file", file);
+        const res = await axios.post(`${API_URL}/image`, fd, { timeout: 120000 });
+        tempUploadCache.current.set(src, res.data.image);
+        return res.data.image;
+    };
+
+    // HTML string me se temp images upload karke naya HTML return karta hai
+    const fixTempImagesInHtml = async (html) => {
+        if (!html || !/src=["'](blob:|data:image)/i.test(html)) return html;
+        const doc = new DOMParser().parseFromString(html, "text/html");
+        const imgs = Array.from(doc.querySelectorAll("img")).filter((im) =>
+            isTempSrc(im.getAttribute("src"))
+        );
+        for (const im of imgs) {
+            try {
+                im.setAttribute("src", await uploadTempSrc(im.getAttribute("src")));
+            } catch (e) {
+                console.error("Temp image upload failed:", e);
+                throw new Error("TEMP_IMAGE_UPLOAD_FAILED");
+            }
+        }
+        return doc.body.innerHTML;
+    };
+
+    // Live editor ke andar ki images ko in-place fix karta hai
+    const fixTempImagesInEditor = async () => {
+        const inst = editor.current;
+        const root = inst?.editor;
+        if (!root) return;
+        const imgs = Array.from(root.querySelectorAll("img")).filter((im) =>
+            isTempSrc(im.getAttribute("src"))
+        );
+        if (!imgs.length) return;
+        notify(`Uploading ${imgs.length} pasted image(s)...`, "info");
+        for (const im of imgs) {
+            try {
+                const url = await uploadTempSrc(im.getAttribute("src"));
+                im.setAttribute("src", url);
+            } catch (e) {
+                console.error("Temp image upload failed:", e);
+                notify("Pasted image upload fail hui — dobara upload karein.", "error");
+            }
+        }
+        inst.synchronizeValues?.();
+    };
+
+    const tempFixTimer = useRef(null);
+    const scheduleTempFix = () => {
+        if (tempFixTimer.current) clearTimeout(tempFixTimer.current);
+        tempFixTimer.current = setTimeout(fixTempImagesInEditor, 800);
+    };
+
     // Ek hi jagah se image upload karne wala helper — toolbar aur drag&drop
     // dono isi function ko call karenge taaki Firebase URL hamesha use ho,
     // local file:/// path kabhi editor me na jaaye.
@@ -158,6 +227,31 @@ export function useArticleForm({
             // hai — isliye 'drop' event ko khud intercept karke usi
             // Firebase upload function se pass kar rahe hain.
             events: {
+                // paste / typing / undo — kisi bhi change ke baad temp images fix karo
+                // Ctrl+V se clipboard ki image (screenshot / copied image) seedha upload
+                paste: function (event) {
+                    const items = event.clipboardData && event.clipboardData.items;
+                    if (!items) return;
+                    const files = [];
+                    for (let i = 0; i < items.length; i++) {
+                        if (items[i].kind === "file" && items[i].type.startsWith("image/")) {
+                            const f = items[i].getAsFile();
+                            if (f) files.push(f);
+                        }
+                    }
+                    if (files.length) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        uploadImagesToEditor(files);
+                        return false;
+                    }
+                },
+                afterPaste: function () {
+                    scheduleTempFix();
+                },
+                change: function () {
+                    scheduleTempFix();
+                },
                 drop: function (event) {
                     const dt = event.dataTransfer;
                     const files = dt && dt.files;
@@ -423,7 +517,9 @@ export function useArticleForm({
         fetchSubCategories();
     }, [Topic]);
 
-    const showVerifyModal = () => {
+    const showVerifyModal = async () => {
+        // Preview se pehle temp (blob:) images ko permanent URL me badlo
+        await fixTempImagesInEditor();
         // Editor se latest content lo (blur ka wait mat karo)
         const editorHtml = getEditorHtml();
         setdesc(editorHtml);
@@ -488,9 +584,9 @@ export function useArticleForm({
         setFormError("");
     };
 
-    const buildPayload = (imageUrl, extra = {}) => ({
+    const buildPayload = (imageUrl, extra = {}, cleanHtml = null) => ({
         title,
-        discription: toPublishHtml(getEditorHtml()),
+        discription: toPublishHtml(cleanHtml ?? getEditorHtml()),
         topic: Topic,
         keyWord: keyword,
         language: Language,
@@ -523,11 +619,13 @@ export function useArticleForm({
                     ? new Date(scheduleDateTime).toISOString()
                     : null;
 
+            const cleanHtml = await fixTempImagesInHtml(getEditorHtml());
             const payload = buildPayload(
                 imageRes.data.image,
                 enableScheduling
                     ? { publishAt, status: publishAt ? "scheduled" : "published" }
-                    : {}
+                    : {},
+                cleanHtml
             );
 
             await axios.post(
@@ -548,7 +646,9 @@ export function useArticleForm({
         } catch (err) {
             console.error("Upload error:", err);
             notify(
-                err?.code === "ECONNABORTED"
+                err?.message === "TEMP_IMAGE_UPLOAD_FAILED"
+                    ? "Editor ki ek image upload nahi ho paayi (purani/expired image). Usse hata kar dobara upload karein."
+                    : err?.code === "ECONNABORTED"
                     ? "Server se jawab nahi aaya (timeout). Internet check karke dobara Publish dabayein."
                     : "Failed to publish article.",
                 "error"
@@ -573,7 +673,12 @@ export function useArticleForm({
                 finalImg = imageRes.data.image;
             }
 
-            await axios.put(`${API_URL}/article/${editId ?? id}`, buildPayload(finalImg), { timeout: 60000 });
+            const cleanHtml = await fixTempImagesInHtml(getEditorHtml());
+            await axios.put(
+                `${API_URL}/article/${editId ?? id}`,
+                buildPayload(finalImg, {}, cleanHtml),
+                { timeout: 60000 }
+            );
 
             notify("Article updated successfully!", "success");
             resetForm();
@@ -581,7 +686,12 @@ export function useArticleForm({
             router.push("/dashboard/articles");
         } catch (error) {
             console.error("Edit error:", error);
-            notify("Failed to update article.", "error");
+            notify(
+                error?.message === "TEMP_IMAGE_UPLOAD_FAILED"
+                    ? "Editor ki ek image upload nahi ho paayi (purani/expired image). Usse hata kar dobara upload karein."
+                    : "Failed to update article.",
+                "error"
+            );
         } finally {
             setPublishLoading(false);
             setLoading(false);
@@ -638,6 +748,7 @@ export function useArticleForm({
 
         // config/utils
         joditConfig,
+        uploadImagesToEditor,
         createSlugText,
         notify,
         addItem,
