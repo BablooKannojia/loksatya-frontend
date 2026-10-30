@@ -626,7 +626,7 @@ const Articles = () => {
                                                                                 onClick={() => {
                                                                                     setOnEdit(true);
                                                                                     setId(article._id);
-                                                                                    router.push("/dashboard/upload?edit=true");
+                                                                                    router.push(`/dashboard/upload?edit=true&id=${article._id}`);
                                                                                 }}
                                                                                 title="Edit Article"
                                                                             >

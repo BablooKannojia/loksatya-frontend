@@ -9,6 +9,8 @@ const Upload = () => {
   const searchParams = useSearchParams();
   const edit = searchParams.get("edit");
   const { id } = useContext(onEditContext);
+  // id URL me bhi rehti hai (?edit=true&id=...) taaki page refresh par article dobara load ho sake
+  const editId = searchParams.get("id") || id;
 
   return (
     <ArticleFormBase
@@ -16,11 +18,11 @@ const Upload = () => {
       editHeading="Edit Article"
       subheading="Fill out the information below to manage your publication post."
       defaultNewsType="upload"
-      editId={id}
+      editId={editId}
       shouldLoadForEdit={!!edit}
       enableScheduling={true}
       resetEditWhenNotLoading={true}
-      onCancelEdit={() => window.location.reload()}
+      onCancelEdit={() => { window.location.href = "/dashboard/upload"; }}
     />
   );
 };

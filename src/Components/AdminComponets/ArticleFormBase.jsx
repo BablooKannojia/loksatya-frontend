@@ -66,6 +66,7 @@ export default function ArticleFormBase({
                 {f.onEdit && (
                     <button
                         onClick={() => {
+                            try { sessionStorage.removeItem("editArticleId"); } catch (e) { /* ignore */ }
                             f.setOnEdit(false);
                             if (onCancelEdit) onCancelEdit(f.router);
                         }}
@@ -231,7 +232,10 @@ export default function ArticleFormBase({
                         </div>
                     </div>
 
-                    <div className="rounded-xl overflow-hidden border border-slate-700 text-slate-900 shadow-inner">
+                    <div
+                        className="rounded-xl overflow-hidden border border-slate-700 text-slate-900 shadow-inner"
+                        onClickCapture={f.handleEditorClick}
+                    >
                         <JoditEditor
                             ref={f.editor}
                             value={f.desc}

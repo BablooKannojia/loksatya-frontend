@@ -44,13 +44,22 @@ export function buildTweetEmbedHtml(url) {
 }
 
 // Editor ke andar dikhne wala markup.
+// Ye ek "atomic" (contenteditable=false) block hai: iska text edit nahi hota, isliye aadha
+// kata hua link kabhi nahi bachta. Hatane ke liye "Remove" button ya poora block select karke
+// Delete. Tweet ka link `data-tweet-url` me rehta hai — publish isi se banta hai.
+const BOX_STYLE =
+  "display:block;margin:12px 0;padding:10px 14px;border:1px solid #cfd9de;border-left:4px solid #0f1419;" +
+  "border-radius:10px;background:#f7f9f9;color:#536471;font-size:14px;line-height:1.5;user-select:none;";
+const REMOVE_STYLE = "float:right;margin-left:12px;color:#dc2626;font-weight:700;cursor:pointer;";
+
 export function buildTweetEditorHtml(url) {
   const u = normalizeTweetUrl(url) || String(url || "").trim();
   return (
-    `<blockquote class="${PLACEHOLDER_CLASS}">` +
-    `<p class="${LABEL_CLASS}">𝕏 Post embed — publish/preview me asli tweet dikhega</p>` +
-    `<a href="${u}">${u}</a>` +
-    `</blockquote><p><br></p>`
+    `<div class="${PLACEHOLDER_CLASS}" contenteditable="false" data-tweet-url="${u}" style="${BOX_STYLE}">` +
+    `<span data-tweet-remove="1" style="${REMOVE_STYLE}">\u2715 Remove</span>` +
+    `<span class="${LABEL_CLASS}" style="display:block;font-weight:700;color:#0f1419;">\ud835\udd4f Post embed \u2014 publish/preview me asli tweet dikhega</span>` +
+    `<a href="${u}" target="_blank" rel="noopener noreferrer" style="color:#1d9bf0;word-break:break-all;">${u}</a>` +
+    `</div><p><br></p>`
   );
 }
 
@@ -76,23 +85,26 @@ export function toPublishHtml(html) {
   const doc = new DOMParser().parseFromString(html, "text/html");
   const body = doc.body;
 
-  // 1) Placeholder -> asli twitter-tweet blockquote
-  body.querySelectorAll(`blockquote.${PLACEHOLDER_CLASS}`).forEach((bq) => {
-    bq.querySelectorAll(`.${LABEL_CLASS}`).forEach((n) => n.remove());
-    const url = findTweetUrlIn(bq);
+  // 1) Placeholder -> asli twitter-tweet blockquote.
+  //    URL `data-tweet-url` se aata hai (user use edit nahi kar sakta). Purane/legacy placeholder
+  //    me link se padhte hain. Placeholder ka label / Remove button publish me kabhi nahi jaata.
+  body.querySelectorAll(`.${PLACEHOLDER_CLASS}`).forEach((el) => {
+    const url = normalizeTweetUrl(el.getAttribute("data-tweet-url")) || findTweetUrlIn(el);
     if (!url) {
-      // link hata diya gaya => normal blockquote bana do
-      bq.classList.remove(PLACEHOLDER_CLASS);
-      if (!bq.getAttribute("class")) bq.removeAttribute("class");
+      // link nahi bacha => embed nahi banega
+      if (el.tagName === "BLOCKQUOTE") {
+        el.querySelectorAll(`.${LABEL_CLASS}, [data-tweet-remove]`).forEach((n) => n.remove());
+        el.removeAttribute("class");
+        el.removeAttribute("contenteditable");
+        el.removeAttribute("style");
+      } else {
+        el.remove();
+      }
       return;
     }
-    if (!Array.from(bq.querySelectorAll("a[href]")).some((a) => normalizeTweetUrl(a.getAttribute("href")))) {
-      const a = doc.createElement("a");
-      a.setAttribute("href", url);
-      a.textContent = url;
-      bq.appendChild(a);
-    }
-    bq.setAttribute("class", "twitter-tweet");
+    const tpl = doc.createElement("template");
+    tpl.innerHTML = buildTweetEmbedHtml(url);
+    el.replaceWith(tpl.content);
   });
 
   // 2) Akela pada tweet URL (plain text ya link) => embed.
@@ -132,7 +144,11 @@ export function toEditorHtml(html) {
   const doc = new DOMParser().parseFromString(html, "text/html");
   doc.body.querySelectorAll("script").forEach((s) => s.remove());
   doc.body.querySelectorAll("blockquote.twitter-tweet").forEach((bq) => {
-    bq.setAttribute("class", PLACEHOLDER_CLASS);
+    const url = findTweetUrlIn(bq);
+    if (!url) return; // tweet link nahi mila => normal blockquote hi rehne do
+    const tpl = doc.createElement("template");
+    tpl.innerHTML = buildTweetEditorHtml(url).replace(/<p><br><\/p>$/, ""); // trailing khaali <p> yahan nahi
+    bq.replaceWith(tpl.content);
   });
   return doc.body.innerHTML;
 }

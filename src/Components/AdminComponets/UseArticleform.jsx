@@ -358,10 +358,37 @@ export function useArticleForm({
         notify("Tweet/X post add ho gaya! Asli tweet Preview me dikhega.", "success");
     };
 
+    // Editor ke andar tweet block par "Remove" dabane par poora block hata do.
+    // (Wrapper div par onClickCapture se lagta hai — Jodit ke click events ke upar.)
+    const handleEditorClick = (e) => {
+        const btn = e.target?.closest?.("[data-tweet-remove]");
+        if (!btn) return;
+        e.preventDefault();
+        e.stopPropagation();
+        const block = btn.closest(".tweet-embed-placeholder");
+        const inst = editor.current;
+        if (!block || !inst) return;
+        block.remove();
+        inst.synchronizeValues?.();
+        setdesc(getEditorHtml());
+        notify("Tweet/X post hata diya gaya.", "success");
+    };
+
+    // Edit ke time article ki id: props -> context -> (refresh ke baad) sessionStorage
+    const currentEditId =
+        editId ||
+        id ||
+        (typeof window !== "undefined" ? sessionStorage.getItem("editArticleId") : "") ||
+        "";
+
     // Article edit data + tags + categories + user info — sab ek hi effect me
     useEffect(() => {
-        if (onEdit && shouldLoadForEdit) {
-            axios.get(`${API_URL}/article?id=${editId ?? id}`).then((item) => {
+        if (shouldLoadForEdit && currentEditId) {
+            // Page refresh ke baad context khaali ho jaata hai (onEdit=false) — isliye URL / storage
+            // se id milte hi edit mode wapas on karo, warna "update" ki jagah naya article ban jaata.
+            if (typeof setOnEdit === "function") setOnEdit(true);
+            try { sessionStorage.setItem("editArticleId", currentEditId); } catch (e) { /* ignore */ }
+            axios.get(`${API_URL}/article?id=${currentEditId}`).then((item) => {
                 const data = item.data?.[0];
                 if (!data) return;
                 setTitle(data.title || "");
@@ -379,13 +406,19 @@ export function useArticleForm({
                 setreported(data.reportedBy || "");
                 setNewType(data.newsType || defaultNewsType);
                 setType(data.type || "img");
+            }).catch((err) => {
+                console.error("Article load failed:", err);
+                notify("Article load nahi ho paaya. Page refresh karke dobara try karein.", "error");
             });
         } else if (
             !shouldLoadForEdit &&
             resetEditWhenNotLoading &&
             typeof setOnEdit === "function"
         ) {
-            setOnEdit(false);
+            // Create mode: purani edit state + form saaf karo (warna edit se "Upload" par aane par
+            // pichla article form me reh jaata aur publish karne par duplicate ban jaata)
+            try { sessionStorage.removeItem("editArticleId"); } catch (e) { /* ignore */ }
+            resetForm();
         }
 
         const userId =
@@ -404,7 +437,7 @@ export function useArticleForm({
                 .catch((err) => console.error(err));
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [onEdit, editId, id, shouldLoadForEdit]);
+    }, [currentEditId, shouldLoadForEdit]);
 
     useEffect(() => {
         axios
@@ -675,12 +708,13 @@ export function useArticleForm({
 
             const cleanHtml = await fixTempImagesInHtml(getEditorHtml());
             await axios.put(
-                `${API_URL}/article/${editId ?? id}`,
+                `${API_URL}/article/${currentEditId}`,
                 buildPayload(finalImg, {}, cleanHtml),
                 { timeout: 60000 }
             );
 
             notify("Article updated successfully!", "success");
+            try { sessionStorage.removeItem("editArticleId"); } catch (e) { /* ignore */ }
             resetForm();
             setIsVerifyModalOpen(false);
             router.push("/dashboard/articles");
@@ -759,6 +793,7 @@ export function useArticleForm({
         tweetError,
         closeTweetModal,
         confirmTweetEmbed,
+        handleEditorClick,
         formError,
         showVerifyModal,
         onUpload,
